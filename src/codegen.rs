@@ -311,6 +311,12 @@ impl CCodeGenerator {
             // Helper functions for std.fs (file I/O) bindings, define once in entrypoint TU
             self.output.push_str("int rapter_write_all(char* path, char* data) { FILE* f = fopen(path, \"wb\"); if (!f) return -1; size_t n = strlen(data); size_t w = fwrite(data, 1, n, f); fclose(f); return w == n ? 0 : -1; }\n");
             self.output.push_str("char* rapter_read_all(char* path) { FILE* f = fopen(path, \"rb\"); if (!f) { char* s = (char*)malloc(1); if (s) s[0] = 0; return s; } if (fseek(f, 0, SEEK_END) != 0) { fclose(f); char* s = (char*)malloc(1); if (s) s[0]=0; return s; } long sz = ftell(f); if (sz < 0) { fclose(f); char* s = (char*)malloc(1); if (s) s[0]=0; return s; } fseek(f, 0, SEEK_SET); char* buf = (char*)malloc((size_t)sz + 1); if (!buf) { fclose(f); return NULL; } size_t n = fread(buf, 1, (size_t)sz, f); fclose(f); buf[n] = 0; return buf; }\n\n");
+            
+            // String helper functions
+            self.output.push_str("typedef struct { char** data; size_t size; size_t capacity; } DynamicArray_charptr;\n");
+            self.output.push_str("char* rapter_substring(char* str, int start, int end) { if (!str) return NULL; int len = strlen(str); if (start < 0) start = 0; if (end > len) end = len; if (start >= end) return strdup(\"\"); int sublen = end - start; char* result = (char*)malloc(sublen + 1); if (!result) return NULL; strncpy(result, str + start, sublen); result[sublen] = 0; return result; }\n");
+            self.output.push_str("char* rapter_trim(char* str) { if (!str) return NULL; while (*str && isspace((unsigned char)*str)) str++; if (!*str) return strdup(\"\"); char* end = str + strlen(str) - 1; while (end > str && isspace((unsigned char)*end)) end--; size_t len = end - str + 1; char* result = (char*)malloc(len + 1); if (!result) return NULL; memcpy(result, str, len); result[len] = 0; return result; }\n");
+            self.output.push_str("DynamicArray_charptr rapter_split(char* str, char* delim) { DynamicArray_charptr arr; arr.size = 0; arr.capacity = 4; arr.data = (char**)malloc(arr.capacity * sizeof(char*)); if (!arr.data) return arr; char* copy = strdup(str); char* token = strtok(copy, delim); while (token) { if (arr.size >= arr.capacity) { arr.capacity *= 2; arr.data = (char**)realloc(arr.data, arr.capacity * sizeof(char*)); } arr.data[arr.size++] = strdup(token); token = strtok(NULL, delim); } free(copy); return arr; }\n\n");
         }
         
         // (structs already defined above)
@@ -835,9 +841,52 @@ impl CCodeGenerator {
                 } else if let Expression::StructAccess { object, field } = &**callee {
                     // Distinguish between module-qualified calls (module.func) and methods (obj.method)
                     if let Expression::Variable(obj_name) = &**object {
-                        let is_dyn_object = matches!(self.expr_type(object), Some(Type::DynamicArray(_)));
-                        match (field.as_str(), is_dyn_object) {
-                            ("push", true) => {
+                        let mut obj_type = self.expr_type(object).unwrap_or(Type::Int);
+                        
+                        // Normalize str to String type
+                        if let Type::Struct(ref name) = obj_type {
+                            if name == "str" {
+                                obj_type = Type::String;
+                            }
+                        }
+                        
+                        match (&obj_type, field.as_str()) {
+                            // String methods
+                            (&Type::String, "length") => {
+                                self.output.push_str("strlen(");
+                                self.generate_expression(object)?;
+                                self.output.push_str(")");
+                            }
+                            (&Type::String, "substring") => {
+                                self.output.push_str("rapter_substring(");
+                                self.generate_expression(object)?;
+                                self.output.push_str(", ");
+                                self.generate_expression(&arguments[0])?;
+                                self.output.push_str(", ");
+                                self.generate_expression(&arguments[1])?;
+                                self.output.push_str(")");
+                            }
+                            (&Type::String, "contains") => {
+                                self.output.push_str("(strstr(");
+                                self.generate_expression(object)?;
+                                self.output.push_str(", ");
+                                self.generate_expression(&arguments[0])?;
+                                self.output.push_str(") != NULL ? 1 : 0)");
+                            }
+                            (&Type::String, "trim") => {
+                                self.output.push_str("rapter_trim(");
+                                self.generate_expression(object)?;
+                                self.output.push_str(")");
+                            }
+                            (&Type::String, "split") => {
+                                self.output.push_str("rapter_split(");
+                                self.generate_expression(object)?;
+                                self.output.push_str(", ");
+                                self.generate_expression(&arguments[0])?;
+                                self.output.push_str(")");
+                            }
+                            // Dynamic array methods
+                            (&Type::DynamicArray(_), "push") => {
                                 if arguments.len() == 1 {
                                     self.output.push_str("({ ");
                                     self.output.push_str("if (");
@@ -869,7 +918,7 @@ impl CCodeGenerator {
                                     self.output.push_str("/* push expects 1 argument */");
                                 }
                             }
-                            ("pop", true) => {
+                            (&Type::DynamicArray(_), "pop") => {
                                 if arguments.is_empty() {
                                     self.output.push_str("(");
                                     self.output.push_str(obj_name);
@@ -882,7 +931,7 @@ impl CCodeGenerator {
                                     self.output.push_str("/* pop expects no arguments */");
                                 }
                             }
-                            ("length", true) => {
+                            (&Type::DynamicArray(_), "length") => {
                                 if arguments.is_empty() {
                                     self.output.push_str("(");
                                     self.output.push_str(obj_name);
@@ -1483,16 +1532,58 @@ impl CCodeGenerator {
             Expression::MethodCall { object, method, arguments } => {
                 // Method call: object.method(args)
                 // Handle string methods and dynamic array methods
-                let obj_type = self.expr_type(object).unwrap_or(Type::Int);
+                let mut obj_type = self.expr_type(object).unwrap_or(Type::Int);
+                
+                // Normalize str to String type
+                if let Type::Struct(ref name) = obj_type {
+                    if name == "str" {
+                        obj_type = Type::String;
+                    }
+                }
                 
                 match (&obj_type, method.as_str()) {
-                    (Type::String, "length") => {
+                    // String methods
+                    (&Type::String, "length") => {
                         // string.length() -> strlen(string)
                         self.output.push_str("strlen(");
                         self.generate_expression(object)?;
                         self.output.push_str(")");
                     }
-                    (Type::DynamicArray(_), "push") => {
+                    (&Type::String, "substring") => {
+                        // string.substring(start, end) -> rapter_substring(string, start, end)
+                        self.output.push_str("rapter_substring(");
+                        self.generate_expression(object)?;
+                        self.output.push_str(", ");
+                        self.generate_expression(&arguments[0])?;
+                        self.output.push_str(", ");
+                        self.generate_expression(&arguments[1])?;
+                        self.output.push_str(")");
+                    }
+                    (&Type::String, "contains") => {
+                        // string.contains(needle) -> (strstr(string, needle) != NULL ? 1 : 0)
+                        self.output.push_str("(strstr(");
+                        self.generate_expression(object)?;
+                        self.output.push_str(", ");
+                        self.generate_expression(&arguments[0])?;
+                        self.output.push_str(") != NULL ? 1 : 0)");
+                    }
+                    (&Type::String, "trim") => {
+                        // string.trim() -> rapter_trim(string)
+                        self.output.push_str("rapter_trim(");
+                        self.generate_expression(object)?;
+                        self.output.push_str(")");
+                    }
+                    (&Type::String, "split") => {
+                        // string.split(delimiter) -> rapter_split(string, delimiter)
+                        // Returns DynamicArray_charptr (array of strings)
+                        self.output.push_str("rapter_split(");
+                        self.generate_expression(object)?;
+                        self.output.push_str(", ");
+                        self.generate_expression(&arguments[0])?;
+                        self.output.push_str(")");
+                    }
+                    // Dynamic array methods
+                    (&Type::DynamicArray(_), "push") => {
                         // Convert to old-style struct access call for compatibility
                         if let Expression::Variable(obj_name) = &**object {
                             if arguments.len() == 1 {
@@ -1527,7 +1618,7 @@ impl CCodeGenerator {
                             self.output.push_str("/* method calls on non-variables not supported */");
                         }
                     }
-                    (Type::DynamicArray(_), "pop") => {
+                    (&Type::DynamicArray(_), "pop") => {
                         if let Expression::Variable(obj_name) = &**object {
                             if arguments.is_empty() {
                                 self.output.push_str("(");
@@ -1544,7 +1635,7 @@ impl CCodeGenerator {
                             self.output.push_str("/* method calls on non-variables not supported */");
                         }
                     }
-                    (Type::DynamicArray(_), "length") => {
+                    (&Type::DynamicArray(_), "length") => {
                         if let Expression::Variable(obj_name) = &**object {
                             if arguments.is_empty() {
                                 self.output.push_str("(");
@@ -1608,6 +1699,8 @@ impl CCodeGenerator {
                 Type::Int => "DynamicArray_int".to_string(),
                 Type::Float => "DynamicArray_double".to_string(),
                 Type::Char => "DynamicArray_char".to_string(),
+                Type::String => "DynamicArray_charptr".to_string(),
+                Type::Struct(name) if name == "str" => "DynamicArray_charptr".to_string(),
                 Type::Struct(name) => format!("DynamicArray_{}", name),
                 _ => format!("struct {{ {}* data; size_t size; size_t capacity; }}", self.type_to_c(elem_ty)),
             },
@@ -1682,6 +1775,8 @@ impl CCodeGenerator {
                     Type::Int => "DynamicArray_int".to_string(),
                     Type::Float => "DynamicArray_double".to_string(),
                     Type::Char => "DynamicArray_char".to_string(),
+                    Type::String => "DynamicArray_charptr".to_string(),
+                    Type::Struct(name) if name == "str" => "DynamicArray_charptr".to_string(),
                     Type::Struct(name) => format!("DynamicArray_{}", name),
                     _ => format!("struct {{ {}* data; size_t size; size_t capacity; }}", self.type_to_c(element_type)), // fallback
                 }
@@ -2054,12 +2149,26 @@ impl CCodeGenerator {
             }
             Expression::MethodCall { object, method, .. } => {
                 // Return type based on method
-                let obj_type = self.expr_type(object)?;
+                let mut obj_type = self.expr_type(object)?;
+                
+                // Normalize str to String type
+                if let Type::Struct(ref name) = obj_type {
+                    if name == "str" {
+                        obj_type = Type::String;
+                    }
+                }
+                
                 match (&obj_type, method.as_str()) {
-                    (Type::String, "length") => Some(Type::Int),
-                    (Type::DynamicArray(_), "length") => Some(Type::Int),
-                    (Type::DynamicArray(elem_ty), "pop") => Some(*elem_ty.clone()),
-                    (Type::DynamicArray(_), "push") => Some(Type::Void),
+                    // String methods
+                    (&Type::String, "length") => Some(Type::Int),
+                    (&Type::String, "substring") => Some(Type::String),
+                    (&Type::String, "contains") => Some(Type::Bool),
+                    (&Type::String, "trim") => Some(Type::String),
+                    (&Type::String, "split") => Some(Type::DynamicArray(Box::new(Type::String))),
+                    // Dynamic array methods
+                    (&Type::DynamicArray(_), "length") => Some(Type::Int),
+                    (&Type::DynamicArray(ref elem_ty), "pop") => Some(*elem_ty.clone()),
+                    (&Type::DynamicArray(_), "push") => Some(Type::Void),
                     _ => None,
                 }
             }

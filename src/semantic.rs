@@ -583,7 +583,14 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
         },
         Expression::Variable(name) => {
             if let Some(symbol) = symbol_table.lookup(name) {
-                Ok(symbol.ty.clone())
+                // Normalize str to String type
+                let mut ty = symbol.ty.clone();
+                if let Type::Struct(ref type_name) = ty {
+                    if type_name == "str" {
+                        ty = Type::String;
+                    }
+                }
+                Ok(ty)
             } else {
                 let location = SourceLocation::new(file_path.clone(), 0, 0);
                 Err(undefined_variable(name, location))
@@ -785,9 +792,76 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                             }
                         } else if symbol_table.lookup(module_name).is_some() {
                             // Object is a known variable, check if it's a method call
-                            let object_ty = infer_type(object, symbol_table, file_path)?;
+                            let mut object_ty = infer_type(object, symbol_table, file_path)?;
+                            
+                            // Normalize str to String type
+                            if let Type::Struct(ref name) = object_ty {
+                                if name == "str" {
+                                    object_ty = Type::String;
+                                }
+                            }
+                            
                             match (&object_ty, field.as_str()) {
-                                (Type::DynamicArray(elem_ty), "push") => {
+                                // String methods
+                                (&Type::String, "length") => {
+                                    if !arguments.is_empty() {
+                                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                                        return Err(CompilerError::new(
+                                            ErrorKind::WrongArgumentCount,
+                                            format!("length() expects 0 arguments, got {}", arguments.len()),
+                                            location,
+                                        ));
+                                    }
+                                    Ok(Type::Int)
+                                }
+                                (&Type::String, "substring") => {
+                                    if arguments.len() != 2 {
+                                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                                        return Err(CompilerError::new(
+                                            ErrorKind::WrongArgumentCount,
+                                            format!("substring() expects 2 arguments (start, end), got {}", arguments.len()),
+                                            location,
+                                        ).with_suggestion(Suggestion::simple(
+                                            "usage: str.substring(start_index, end_index)"
+                                        )));
+                                    }
+                                    Ok(Type::String)
+                                }
+                                (&Type::String, "contains") => {
+                                    if arguments.len() != 1 {
+                                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                                        return Err(CompilerError::new(
+                                            ErrorKind::WrongArgumentCount,
+                                            format!("contains() expects 1 argument, got {}", arguments.len()),
+                                            location,
+                                        ));
+                                    }
+                                    Ok(Type::Int)
+                                }
+                                (&Type::String, "trim") => {
+                                    if !arguments.is_empty() {
+                                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                                        return Err(CompilerError::new(
+                                            ErrorKind::WrongArgumentCount,
+                                            format!("trim() expects 0 arguments, got {}", arguments.len()),
+                                            location,
+                                        ));
+                                    }
+                                    Ok(Type::String)
+                                }
+                                (&Type::String, "split") => {
+                                    if arguments.len() != 1 {
+                                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                                        return Err(CompilerError::new(
+                                            ErrorKind::WrongArgumentCount,
+                                            format!("split() expects 1 argument, got {}", arguments.len()),
+                                            location,
+                                        ));
+                                    }
+                                    Ok(Type::DynamicArray(Box::new(Type::String)))
+                                }
+                                // Dynamic array methods
+                                (&Type::DynamicArray(ref elem_ty), "push") => {
                                     // push(element) - validate argument count and type
                                     if arguments.len() != 1 {
                                         let location = SourceLocation::new(file_path.clone(), 0, 0);
@@ -798,7 +872,7 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                                         ));
                                     }
                                     let arg_ty = infer_type(&arguments[0], symbol_table, file_path)?;
-                                    if !types_compatible(elem_ty, &arg_ty) {
+                                    if !types_compatible(&*elem_ty, &arg_ty) {
                                         let location = SourceLocation::new(file_path.clone(), 0, 0);
                                         return Err(CompilerError::new(
                                             ErrorKind::TypeMismatch,
@@ -811,7 +885,7 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                                     // push returns the array (for chaining)
                                     Ok(object_ty)
                                 }
-                                (Type::DynamicArray(elem_ty), "pop") => {
+                                (&Type::DynamicArray(ref elem_ty), "pop") => {
                                     // pop() - validate no arguments
                                     if arguments.len() != 0 {
                                         let location = SourceLocation::new(file_path.clone(), 0, 0);
@@ -824,7 +898,7 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                                     // pop returns the element type
                                     Ok(*elem_ty.clone())
                                 }
-                                (Type::DynamicArray(_), "length") => {
+                                (&Type::DynamicArray(_), "length") => {
                                     // length() - validate no arguments
                                     if arguments.len() != 0 {
                                         let location = SourceLocation::new(file_path.clone(), 0, 0);
@@ -1591,10 +1665,18 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
         }
         Expression::MethodCall { object, method, arguments } => {
             // Method call: object.method(args)
-            let object_ty = infer_type(object, symbol_table, file_path)?;
+            let mut object_ty = infer_type(object, symbol_table, file_path)?;
+            
+            // Normalize str to String type
+            if let Type::Struct(ref name) = object_ty {
+                if name == "str" {
+                    object_ty = Type::String;
+                }
+            }
             
             match (&object_ty, method.as_str()) {
-                (Type::String, "length") => {
+                // String methods
+                (&Type::String, "length") => {
                     if !arguments.is_empty() {
                         let location = SourceLocation::new(file_path.clone(), 0, 0);
                         return Err(CompilerError::new(
@@ -1605,7 +1687,89 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                     }
                     Ok(Type::Int)
                 }
-                (Type::DynamicArray(elem_ty), "push") => {
+                (&Type::String, "substring") => {
+                    if arguments.len() != 2 {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("substring() expects 2 arguments (start, end), got {}", arguments.len()),
+                            location,
+                        ).with_suggestion(Suggestion::simple(
+                            "usage: str.substring(start_index, end_index)"
+                        )));
+                    }
+                    // Validate arguments are integers
+                    for (i, arg) in arguments.iter().enumerate() {
+                        let arg_ty = infer_type(arg, symbol_table, file_path)?;
+                        if arg_ty != Type::Int {
+                            let location = SourceLocation::new(file_path.clone(), 0, 0);
+                            return Err(CompilerError::new(
+                                ErrorKind::TypeMismatch,
+                                format!("substring() argument {} must be int, got `{:?}`", i + 1, arg_ty),
+                                location,
+                            ));
+                        }
+                    }
+                    Ok(Type::String)
+                }
+                (&Type::String, "contains") => {
+                    if arguments.len() != 1 {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("contains() expects 1 argument, got {}", arguments.len()),
+                            location,
+                        ).with_suggestion(Suggestion::simple(
+                            "usage: str.contains(needle)"
+                        )));
+                    }
+                    let arg_ty = infer_type(&arguments[0], symbol_table, file_path)?;
+                    if arg_ty != Type::String {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::TypeMismatch,
+                            format!("contains() expects string argument, got `{:?}`", arg_ty),
+                            location,
+                        ));
+                    }
+                    Ok(Type::Bool)
+                }
+                (&Type::String, "trim") => {
+                    if !arguments.is_empty() {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("trim() expects 0 arguments, got {}", arguments.len()),
+                            location,
+                        ));
+                    }
+                    Ok(Type::String)
+                }
+                (&Type::String, "split") => {
+                    if arguments.len() != 1 {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("split() expects 1 argument (delimiter), got {}", arguments.len()),
+                            location,
+                        ).with_suggestion(Suggestion::simple(
+                            "usage: str.split(delimiter)"
+                        )));
+                    }
+                    let arg_ty = infer_type(&arguments[0], symbol_table, file_path)?;
+                    if arg_ty != Type::String && arg_ty != Type::Char {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::TypeMismatch,
+                            format!("split() expects string or char delimiter, got `{:?}`", arg_ty),
+                            location,
+                        ));
+                    }
+                    // Returns a dynamic array of strings
+                    Ok(Type::DynamicArray(Box::new(Type::String)))
+                }
+                // Dynamic array methods
+                (&Type::DynamicArray(ref elem_ty), "push") => {
                     if arguments.len() != 1 {
                         let location = SourceLocation::new(file_path.clone(), 0, 0);
                         return Err(CompilerError::new(
@@ -1615,7 +1779,7 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                         ));
                     }
                     let arg_ty = infer_type(&arguments[0], symbol_table, file_path)?;
-                    if !types_compatible(elem_ty, &arg_ty) {
+                    if !types_compatible(&elem_ty, &arg_ty) {
                         let location = SourceLocation::new(file_path.clone(), 0, 0);
                         return Err(CompilerError::new(
                             ErrorKind::TypeMismatch,
@@ -1625,7 +1789,7 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                     }
                     Ok(Type::Void)
                 }
-                (Type::DynamicArray(elem_ty), "pop") => {
+                (&Type::DynamicArray(ref elem_ty), "pop") => {
                     if !arguments.is_empty() {
                         let location = SourceLocation::new(file_path.clone(), 0, 0);
                         return Err(CompilerError::new(
@@ -1636,7 +1800,7 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                     }
                     Ok(*elem_ty.clone())
                 }
-                (Type::DynamicArray(_), "length") => {
+                (&Type::DynamicArray(_), "length") => {
                     if !arguments.is_empty() {
                         let location = SourceLocation::new(file_path.clone(), 0, 0);
                         return Err(CompilerError::new(
@@ -1679,6 +1843,10 @@ fn types_compatible(left: &Type, right: &Type) -> bool {
         // Type annotation `str` becomes Type::Struct("str"), but string literals are Type::String
         (Type::Struct(name), Type::String) | (Type::String, Type::Struct(name)) => {
             name == "str"
+        }
+        // Handle DynamicArray with str/String element types
+        (Type::DynamicArray(inner1), Type::DynamicArray(inner2)) => {
+            types_compatible(inner1, inner2)
         }
         // Handle qualified vs unqualified type names
         // e.g., ast.AstType should match AstType
