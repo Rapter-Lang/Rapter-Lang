@@ -1589,6 +1589,76 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
                 }
             }
         }
+        Expression::MethodCall { object, method, arguments } => {
+            // Method call: object.method(args)
+            let object_ty = infer_type(object, symbol_table, file_path)?;
+            
+            match (&object_ty, method.as_str()) {
+                (Type::String, "length") => {
+                    if !arguments.is_empty() {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("length() expects 0 arguments, got {}", arguments.len()),
+                            location,
+                        ));
+                    }
+                    Ok(Type::Int)
+                }
+                (Type::DynamicArray(elem_ty), "push") => {
+                    if arguments.len() != 1 {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("push() expects 1 argument, got {}", arguments.len()),
+                            location,
+                        ));
+                    }
+                    let arg_ty = infer_type(&arguments[0], symbol_table, file_path)?;
+                    if !types_compatible(elem_ty, &arg_ty) {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::TypeMismatch,
+                            format!("push() expects element of type `{:?}`, got `{:?}`", elem_ty, arg_ty),
+                            location,
+                        ));
+                    }
+                    Ok(Type::Void)
+                }
+                (Type::DynamicArray(elem_ty), "pop") => {
+                    if !arguments.is_empty() {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("pop() expects 0 arguments, got {}", arguments.len()),
+                            location,
+                        ));
+                    }
+                    Ok(*elem_ty.clone())
+                }
+                (Type::DynamicArray(_), "length") => {
+                    if !arguments.is_empty() {
+                        let location = SourceLocation::new(file_path.clone(), 0, 0);
+                        return Err(CompilerError::new(
+                            ErrorKind::WrongArgumentCount,
+                            format!("length() expects 0 arguments, got {}", arguments.len()),
+                            location,
+                        ));
+                    }
+                    Ok(Type::Int)
+                }
+                _ => {
+                    let location = SourceLocation::new(file_path.clone(), 0, 0);
+                    Err(CompilerError::new(
+                        ErrorKind::UndefinedFunction,
+                        format!("unknown method `{}` on type `{:?}`", method, object_ty),
+                        location,
+                    ).with_suggestion(Suggestion::simple(
+                        "check the method name or ensure the type supports this operation"
+                    )))
+                }
+            }
+        }
     }
 }
 

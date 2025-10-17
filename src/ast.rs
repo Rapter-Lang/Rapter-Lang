@@ -157,6 +157,11 @@ pub enum Expression {
         callee: Box<Expression>,
         arguments: Vec<Expression>,
     },
+    MethodCall {
+        object: Box<Expression>,
+        method: String,
+        arguments: Vec<Expression>,
+    },
     ArrayLiteral(Vec<Expression>),
     DynamicArrayLiteral {
         element_type: Box<Type>,

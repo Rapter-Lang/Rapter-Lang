@@ -1355,7 +1355,7 @@ impl CCodeGenerator {
                     if name == "Result" {
                         // Result<T, E> case
                         let ok_type = if !type_params.is_empty() { &type_params[0] } else { &Type::Int };
-                        let err_type = if type_params.len() > 1 { &type_params[1] } else { &Type::Int };
+                        let _err_type = if type_params.len() > 1 { &type_params[1] } else { &Type::Int };
                         
                         let c_type = self.type_to_c(&Type::Generic { 
                             name: name.clone(), 
@@ -1478,6 +1478,92 @@ impl CCodeGenerator {
                     self.output.push_str("})");
                 } else {
                     self.output.push_str("/* ? operator requires Result or Option */");
+                }
+            }
+            Expression::MethodCall { object, method, arguments } => {
+                // Method call: object.method(args)
+                // Handle string methods and dynamic array methods
+                let obj_type = self.expr_type(object).unwrap_or(Type::Int);
+                
+                match (&obj_type, method.as_str()) {
+                    (Type::String, "length") => {
+                        // string.length() -> strlen(string)
+                        self.output.push_str("strlen(");
+                        self.generate_expression(object)?;
+                        self.output.push_str(")");
+                    }
+                    (Type::DynamicArray(_), "push") => {
+                        // Convert to old-style struct access call for compatibility
+                        if let Expression::Variable(obj_name) = &**object {
+                            if arguments.len() == 1 {
+                                self.output.push_str("({ ");
+                                self.output.push_str("if (");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".size == ");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".capacity) { size_t new_cap = ");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".capacity ? ");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".capacity * 2 : 4; ");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".data = realloc(");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".data, new_cap * sizeof(");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".data[0])); ");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".capacity = new_cap; } ");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".data[");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".size++] = ");
+                                self.generate_expression(&arguments[0])?;
+                                self.output.push_str("; })");
+                            } else {
+                                self.output.push_str("/* push expects 1 argument */");
+                            }
+                        } else {
+                            self.output.push_str("/* method calls on non-variables not supported */");
+                        }
+                    }
+                    (Type::DynamicArray(_), "pop") => {
+                        if let Expression::Variable(obj_name) = &**object {
+                            if arguments.is_empty() {
+                                self.output.push_str("(");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".size > 0 ? ");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".data[--");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".size] : 0)");
+                            } else {
+                                self.output.push_str("/* pop expects no arguments */");
+                            }
+                        } else {
+                            self.output.push_str("/* method calls on non-variables not supported */");
+                        }
+                    }
+                    (Type::DynamicArray(_), "length") => {
+                        if let Expression::Variable(obj_name) = &**object {
+                            if arguments.is_empty() {
+                                self.output.push_str("(");
+                                self.output.push_str(obj_name);
+                                self.output.push_str(".size)");
+                            } else {
+                                self.output.push_str("/* length expects no arguments */");
+                            }
+                        } else {
+                            self.output.push_str("/* method calls on non-variables not supported */");
+                        }
+                    }
+                    _ => {
+                        self.output.push_str("/* method not supported: ");
+                        self.output.push_str(method);
+                        self.output.push_str(" on ");
+                        self.output.push_str(&format!("{:?}", obj_type));
+                        self.output.push_str(" */");
+                    }
                 }
             }
             Expression::Range { start: _, end: _ } => {
@@ -1964,6 +2050,17 @@ impl CCodeGenerator {
                     }
                 } else {
                     None
+                }
+            }
+            Expression::MethodCall { object, method, .. } => {
+                // Return type based on method
+                let obj_type = self.expr_type(object)?;
+                match (&obj_type, method.as_str()) {
+                    (Type::String, "length") => Some(Type::Int),
+                    (Type::DynamicArray(_), "length") => Some(Type::Int),
+                    (Type::DynamicArray(elem_ty), "pop") => Some(*elem_ty.clone()),
+                    (Type::DynamicArray(_), "push") => Some(Type::Void),
+                    _ => None,
                 }
             }
             Expression::Range { .. } => Some(Type::Void),
