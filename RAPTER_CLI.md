@@ -1,112 +1,353 @@
-# 🦖 Rapter CLI - Quick Start Guide
+# Rapter CLI Reference
 
-The Rapter CLI makes it easy to build and run Rapter programs!
+The Rapter CLI provides a professional command-line interface for building and running Rapter programs.
 
 ## Installation
 
-The CLI is already set up! Just use it from the Rapter directory.
+### Automatic Installation (Recommended)
 
-## Usage
+Run the installer to add Rapter to your PATH:
 
-### Build a Program
-```bash
-rapter build <file.rapt>
+```powershell
+.\install.ps1
 ```
 
-Compiles your Rapter source code into an executable (`output.exe`).
+After installation, you can use `rapter` from anywhere!
+
+### Manual Usage
+
+If not installed, use the CLI from the Rapter directory:
+
+```powershell
+.\rapter.ps1 <command> [arguments]
+```
+
+
+## Commands
+
+### `rapter build <file.rapt>`
+
+Compiles a Rapter source file to C code and then to a native executable.
+
+**Output:**
+- `output.c` - Generated C code
+- `output.exe` (Windows) / `output` (Linux/Mac) - Native executable
 
 **Example:**
 ```bash
-rapter build hello.rapt
-rapter build examples/bootstrap_proof.rapt
+rapter build examples/hello.rapt
+rapter build examples/fibonacci.rapt
 ```
 
-### Run the Last Built Program
+**What it does:**
+1. Compiles Rapter source to C using the Rust-based compiler
+2. Compiles C code to executable using GCC
+3. Reports any compilation errors with helpful messages
+
+---
+
+### `rapter run`
+
+Executes the most recently built program.
+
+**Example:**
 ```bash
+rapter build examples/hello.rapt
 rapter run
 ```
 
-Runs the most recently built executable.
+**Output:**
+```
+╭─────────────────────────────────────────╮
+│ Running: output.exe                     │
+╰─────────────────────────────────────────╯
 
-**Example workflow:**
-```bash
-rapter build hello.rapt
-rapter run
+Hello, World!
+Welcome to Rapter!
+
+╭─────────────────────────────────────────╮
+│ Program finished                        │
+│ Exit Code: 0                            │
+╰─────────────────────────────────────────╯
 ```
 
-### Compile to C Only
+---
+
+### `rapter compile <file.rapt>`
+
+Compiles Rapter source to C code only (no executable generated).
+
+**Output:**
+- `output.c` - Generated C code
+
+**Example:**
 ```bash
-rapter compile <file.rapt>
+rapter compile examples/structs_demo.rapt
+# Now you can inspect output.c
 ```
 
-Only generates C code (`output.c`) without building the executable.
+**Use cases:**
+- Debugging generated C code
+- Understanding how Rapter compiles to C
+- Integrating with custom build systems
 
-### Clean Build Artifacts
+---
+
+### `rapter clean`
+
+Removes all build artifacts.
+
+**Removes:**
+- `output.c` - Generated C code
+- `output.exe` / `output` - Compiled executable
+- `.build/` - Build cache directory
+
+**Example:**
 ```bash
 rapter clean
 ```
 
-Removes all generated files (`output.c`, `output.exe`, `.build/`).
+---
 
-## Complete Example
+### `rapter help`
 
+Shows all available commands and usage information.
+
+**Example:**
 ```bash
-# 1. Build a Rapter program
-.\rapter.ps1 build examples/bootstrap_proof.rapt
-
-# 2. Run it
-.\rapter.ps1 run
-
-# 3. Clean up when done
-.\rapter.ps1 clean
+rapter help
 ```
 
-## Adding to PATH (Optional)
 
-To use `rapter` from anywhere:
+## Quick Start Workflow
 
-1. Add the Rapter directory to your system PATH
-2. Then you can just type:
-   ```bash
-   rapter build myprogram.rapt
-   rapter run
+### Your First Program
+
+1. **Create a Rapter file** (`hello.rapt`):
+```rapter
+extern fn printf(format: *char, ...) -> int;
+
+fn main() -> int {
+    printf("Hello, Rapter!\n");
+    return 0;
+}
+```
+
+2. **Build it:**
+```bash
+rapter build hello.rapt
+```
+
+3. **Run it:**
+```bash
+rapter run
+```
+
+4. **Clean up:**
+```bash
+rapter clean
+```
+
+### Working with Examples
+
+```bash
+# Try the Fibonacci example
+rapter build examples/fibonacci.rapt
+rapter run
+
+# Try the structs demonstration
+rapter build examples/structs_demo.rapt
+rapter run
+
+# Clean up when done
+rapter clean
+```
+
+## Advanced Usage
+
+### Inspecting Generated C Code
+
+```bash
+# Compile to C only
+rapter compile examples/hello.rapt
+
+# View the generated C code
+cat output.c
+# or
+notepad output.c
+```
+
+### Build and Run in One Line
+
+```bash
+rapter build examples/hello.rapt && rapter run
+```
+
+### Using Different Compilers
+
+The CLI uses GCC by default. To use a different C compiler, modify `rapter.ps1`:
+
+```powershell
+# Change this line in rapter.ps1:
+gcc output.c -o output.exe
+
+# To use Clang instead:
+clang output.c -o output.exe
+```
+
+
+## How It Works
+
+### Build Process (`rapter build`)
+
+1. **Lexical Analysis**
+   - Tokenizes Rapter source code
+   - Identifies keywords, operators, literals, identifiers
+
+2. **Parsing**
+   - Builds Abstract Syntax Tree (AST)
+   - Validates syntax structure
+
+3. **Semantic Analysis**
+   - Type checking and inference
+   - Variable resolution
+   - Module imports
+
+4. **Code Generation**
+   - Generates C code from AST
+   - Optimizes output
+   - Adds runtime support
+
+5. **Native Compilation**
+   - Compiles C code with GCC
+   - Links runtime library
+   - Creates executable
+
+### Run Process (`rapter run`)
+
+- Executes the compiled binary
+- Captures stdout/stderr
+- Reports exit code
+- Formats output with visual borders
+
+### Compile Process (`rapter compile`)
+
+- Performs steps 1-4 only
+- Outputs `output.c`
+- Useful for debugging and integration
+
+## Troubleshooting
+
+### Command Not Found
+
+If `rapter` is not recognized:
+
+1. **Run the installer:**
+   ```powershell
+   .\install.ps1
    ```
 
-## What Happens Under the Hood
+2. **Restart your terminal**
 
-1. **`rapter build`**:
-   - Runs `cargo run <file.rapt>` to compile Rapter → C
-   - Runs `gcc output.c -o output.exe` to compile C → executable
-   - Saves the build info for `rapter run`
+3. **Verify installation:**
+   ```powershell
+   rapter help
+   ```
 
-2. **`rapter run`**:
-   - Executes `output.exe`
-   - Shows the program output with nice formatting
-   - Reports the exit code
+### GCC Not Found
 
-3. **`rapter compile`**:
-   - Only does step 1 (Rapter → C)
-   - Useful for debugging generated C code
+The CLI requires GCC to compile C code to executables.
 
-4. **`rapter clean`**:
-   - Removes all generated files
-   - Gives you a fresh start
+**Windows:**
+- Install MinGW: http://www.mingw.org/
+- Or install via Chocolatey: `choco install mingw`
 
-## Tips
+**Linux:**
+```bash
+sudo apt-get install gcc  # Debian/Ubuntu
+sudo yum install gcc      # Fedora/RHEL
+```
 
-- Use `.\rapter.ps1` in PowerShell if `rapter` alone doesn't work
-- The CLI remembers your last build, so `rapter run` just works!
-- Build artifacts are cleaned up automatically on each new build
-- Check the generated `output.c` to see what C code was generated
+**Mac:**
+```bash
+xcode-select --install
+```
 
-## Self-Hosting Note
+### Build Errors
 
-The Rapter compiler itself is written in Rapter! See:
-- `bootstrap/rapter_bootstrap_v1.rapt` - Bootstrap compiler
-- Run it with: `rapter build bootstrap/rapter_bootstrap_v1.rapt`
+If you encounter compilation errors:
 
-This demonstrates Rapter's self-hosting capability! 🎉
+1. **Check the error message** - Rapter provides detailed error reports
+2. **Verify syntax** - Compare with examples in `examples/`
+3. **Inspect generated C** - Use `rapter compile` to see output.c
+4. **Report bugs** - https://github.com/Rapter-Lang/Rapter-Lang/issues
+
+## File Locations
+
+- **CLI Script**: `rapter.ps1` (PowerShell)
+- **Windows Wrapper**: `rapter.bat`
+- **Installer**: `install.ps1`
+- **Compiler Binary**: `target/release/rapter-lang.exe`
+- **Examples**: `examples/`
+- **Standard Library**: `src/std/`
+- **Build Artifacts**: `output.c`, `output.exe`
+
+
+## Examples
+
+### Basic Programs
+
+**Hello World:**
+```bash
+rapter build examples/hello.rapt
+rapter run
+```
+
+**Fibonacci Calculator:**
+```bash
+rapter build examples/fibonacci.rapt
+rapter run
+```
+
+**Structs Demo:**
+```bash
+rapter build examples/structs_demo.rapt
+rapter run
+```
+
+### Self-Hosting Compiler
+
+The Rapter compiler is written in Rapter! Try compiling the bootstrap compiler:
+
+```bash
+# Build the self-hosting compiler
+rapter build bootstrap/src/rapter_bootstrap_v1.rapt
+rapter run
+```
+
+This demonstrates Rapter's self-hosting capability - a Rapter program that compiles Rapter programs! 🎉
+
+## Tips & Best Practices
+
+- **Use `rapter clean`** regularly to avoid stale build artifacts
+- **Check `output.c`** with `rapter compile` to understand code generation
+- **Read error messages carefully** - they include helpful suggestions
+- **Start with examples** - All examples in `examples/` are tested and working
+- **Report issues** - Help improve Rapter by reporting bugs
+
+## Performance
+
+- **Build times**: Typically < 1 second for small programs
+- **Generated code**: Clean, readable C that compiles efficiently
+- **Optimization**: Use GCC optimization flags in `rapter.ps1` for production builds
+
+## See Also
+
+- [QUICKSTART.md](QUICKSTART.md) - Get started in 5 minutes
+- [README.md](README.md) - Language overview
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development guidelines
+- [examples/](examples/) - Working example programs
 
 ---
 
-**Happy Raptering!** 🦖✨
+**Happy coding with Rapter!** 🚀

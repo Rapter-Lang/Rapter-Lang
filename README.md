@@ -1,4 +1,4 @@
-# Rapter Programming Language 🚀
+# Rapter Programming Language
 
 > A modern, statically-typed systems programming language that compiles itself
 
@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Rapter-Lang/Rapter-Lang)
 [![Self-Hosting](https://img.shields.io/badge/self--hosting-✓-brightgreen.svg)](https://github.com/Rapter-Lang/Rapter-Lang)
 
-## 🎯 Self-Hosting Compiler Achieved!
+## Self-Hosting Compiler Achieved!
 
 **Rapter successfully compiles itself!** This milestone represents a fully functional compiler toolchain written in Rapter that can compile Rapter source code.
 
@@ -20,7 +20,7 @@
 - ✅ **Standard library** - I/O, string utilities, filesystem, command-line args
 
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -66,7 +66,7 @@ See [RAPTER_CLI.md](RAPTER_CLI.md) for detailed CLI documentation.
 
 ---
 
-## 📖 Language Overview
+## Language Overview
 
 Rapter is a modern systems programming language designed for clarity, safety, and performance. It compiles to C and then to native machine code.
 
@@ -110,7 +110,7 @@ fn process() -> Result<int, string> {
 ```
 
 
-## 💡 Code Examples
+## Code Examples
 
 ### Hello World
 ```rapter
@@ -214,14 +214,14 @@ RapterLang/
 └── Cargo.toml            # Rust project config
 ```
 
-## 📊 Statistics
+## Statistics
 
 - **Rust compiler**: 6,603 lines (11 files)
 - **Rapter bootstrap compiler**: 6,845 lines (25 files)  
 - **Standard library**: 203 lines (5 modules)
 - **Total self-hosted code**: 7,048 lines of Rapter
 
-## 🛠️ Development
+## Development
 
 ### Build from Source
 
@@ -257,16 +257,16 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - Submit pull requests for features or fixes
 - Join discussions about language design
 
-## 📚 Documentation
+## Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
 - **[RAPTER_CLI.md](RAPTER_CLI.md)** - Complete CLI reference
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history
 
-## 🗺️ Roadmap
+## Roadmap
 
-### Current Version: 0.1.0 ✅
+### Current Version: 0.1.0
 - [x] Self-hosting compiler
 - [x] Complete type system
 - [x] Pattern matching
@@ -295,17 +295,17 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - [ ] **Package manager** - Dependency management
 - [ ] **Comprehensive docs** - Language reference manual
 
-## 🤝 Community & Support
+## Community & Support
 
 - **GitHub**: [Rapter-Lang/Rapter-Lang](https://github.com/Rapter-Lang/Rapter-Lang)
 - **Issues**: Report bugs or request features
 - **Discussions**: Ask questions and share ideas
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Rapter draws inspiration from many great languages:
 - **Rust** - Ownership concepts and error handling
@@ -315,6 +315,6 @@ Rapter draws inspiration from many great languages:
 
 ---
 
-**Built with ❤️ by the Rapter community**
+**Built with by the Rapter community**
 
 *Star ⭐ this repo if you find it interesting!*
