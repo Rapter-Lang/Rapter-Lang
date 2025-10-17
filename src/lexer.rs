@@ -448,39 +448,87 @@ pub fn tokenize(source: &str, file_path: &PathBuf) -> Result<Vec<Token>, Compile
                 }
             }
             '"' => {
-                chars.next();
-                column += 1;
-                let mut string = String::new();
-                while let Some(&ch) = chars.peek() {
-                    if ch == '"' {
-                        chars.next();
-                        column += 1;
-                        break;
-                    }
-                    if ch == '\\' {
-                        // Escape sequence in string
-                        chars.next();
-                        column += 1;
-                        if let Some(&esc) = chars.peek() {
+                // Check for triple-quoted string (multi-line)
+                let peek1 = chars.clone().nth(1);
+                let peek2 = chars.clone().nth(2);
+                
+                if peek1 == Some('"') && peek2 == Some('"') {
+                    // Triple-quoted multi-line string
+                    chars.next(); // consume first "
+                    chars.next(); // consume second "
+                    chars.next(); // consume third "
+                    column += 3;
+                    
+                    let mut string = String::new();
+                    let mut consecutive_quotes = 0;
+                    
+                    while let Some(&ch) = chars.peek() {
+                        if ch == '"' {
+                            consecutive_quotes += 1;
                             chars.next();
                             column += 1;
-                            match esc {
-                                'n' => string.push('\n'),
-                                't' => string.push('\t'),
-                                'r' => string.push('\r'),
-                                '0' => string.push('\0'),
-                                '\\' => string.push('\\'),
-                                '"' => string.push('"'),
-                                other => string.push(other),
+                            
+                            if consecutive_quotes == 3 {
+                                // Found closing """
+                                break;
+                            }
+                        } else {
+                            // Add any pending quotes that weren't the closing delimiter
+                            for _ in 0..consecutive_quotes {
+                                string.push('"');
+                            }
+                            consecutive_quotes = 0;
+                            
+                            if ch == '\n' {
+                                string.push('\n');
+                                chars.next();
+                                line += 1;
+                                column = 1;
+                            } else {
+                                string.push(ch);
+                                chars.next();
+                                column += 1;
                             }
                         }
-                    } else {
-                        string.push(ch);
-                        chars.next();
-                        column += 1;
                     }
+                    
+                    tokens.push(Token { kind: TokenKind::StringLiteral(string), line, column });
+                } else {
+                    // Regular single-line string
+                    chars.next();
+                    column += 1;
+                    let mut string = String::new();
+                    while let Some(&ch) = chars.peek() {
+                        if ch == '"' {
+                            chars.next();
+                            column += 1;
+                            break;
+                        }
+                        if ch == '\\' {
+                            // Escape sequence in string
+                            chars.next();
+                            column += 1;
+                            if let Some(&esc) = chars.peek() {
+                                chars.next();
+                                column += 1;
+                                match esc {
+                                    'n' => string.push('\n'),
+                                    't' => string.push('\t'),
+                                    'r' => string.push('\r'),
+                                    '0' => string.push('\0'),
+                                    '\\' => string.push('\\'),
+                                    '"' => string.push('"'),
+                                    other => string.push(other),
+                                }
+                            }
+                        } else {
+                            string.push(ch);
+                            chars.next();
+                            column += 1;
+                        }
+                    }
+                    tokens.push(Token { kind: TokenKind::StringLiteral(string), line, column });
                 }
-                tokens.push(Token { kind: TokenKind::StringLiteral(string), line, column });
             }
             '\'' => {
                 chars.next();
