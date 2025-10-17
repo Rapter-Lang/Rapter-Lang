@@ -1,0 +1,20 @@
+// Standard I/O module for Rapter
+// This provides basic input/output functions
+
+extern fn printf(format: *char, ...) -> int;
+
+fn println(s: string) {
+    printf("%s\n", s);
+}
+
+fn print(s: string) {
+    printf("%s", s);
+}
+
+fn print_int(i: int) {
+    printf("%d", i);
+}
+
+fn println_int(i: int) {
+    printf("%d\n", i);
+}

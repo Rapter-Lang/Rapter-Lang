@@ -1,0 +1,11 @@
+[project]
+name = "RapterLang"
+version = "0.1.0"
+description = "A statically-typed, compiled programming language"
+
+[build]
+target = "llvm"  # or "native"
+optimization = "O0"
+
+[dependencies]
+# Add dependencies here as needed

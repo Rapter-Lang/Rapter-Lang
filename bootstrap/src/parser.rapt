@@ -1,0 +1,40 @@
+// ============================================================================
+// PARSER.RAPT - Bootstrap compiler parser (simplified for now)
+// ============================================================================
+
+import token
+
+extern fn printf(format: *char, ...) -> int;
+
+// Simple helper to count tokens of a specific kind
+fn count_tokens_of_kind(toks: DynamicArray[Token], kind: int) -> int {
+    let count = 0;
+    let len = toks.length();
+    let i = 0;
+    while i < len {
+        let tok = toks[i];
+        if tok.kind == kind {
+            count = count + 1;
+        }
+        i = i + 1;
+    }
+    return count;
+}
+
+// Main parser entry point - simplified validation
+export fn parse_program(input: *char, toks: DynamicArray[Token]) {
+    printf("Parsing...\n");
+    
+    let token_count = toks.length();
+    let fn_count = count_tokens_of_kind(toks, token.TK_FN());
+    let struct_count = count_tokens_of_kind(toks, token.TK_STRUCT());
+    let import_count = count_tokens_of_kind(toks, token.TK_IMPORT());
+    let let_count = count_tokens_of_kind(toks, token.TK_LET());
+    
+    printf("Found %d tokens:\n", token_count);
+    printf("  - %d functions\n", fn_count);
+    printf("  - %d structs\n", struct_count);
+    printf("  - %d imports\n", import_count);
+    printf("  - %d let statements\n", let_count);
+    printf("Parse complete\n");
+}

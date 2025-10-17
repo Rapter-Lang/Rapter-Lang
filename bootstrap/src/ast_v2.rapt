@@ -1,0 +1,367 @@
+// ============================================================================
+// AST_V2.RAPT - Abstract Syntax Tree for Rapter Bootstrap Compiler
+// ============================================================================
+// Simplified but functional AST representation
+// Uses Result<T,E> for error handling
+// ============================================================================
+
+import bootstrap.src.token as token
+
+extern fn printf(format: *char, ...) -> int;
+extern fn malloc(size: int) -> *void;
+extern fn free(ptr: *void);
+
+// ============================================================================
+// AST Node Types
+// ============================================================================
+
+// Type representations
+// Type kind: 0=int, 1=char, 2=pointer, 3=struct, 4=array, etc.
+struct AstType {
+    kind: int,
+    name: *char,
+    inner: *AstType
+}
+
+// Parameter in function
+struct Parameter {
+    name: *char,
+    param_type: *AstType
+}
+
+// Statement types
+// Note: In full implementation, we'd store initializer expressions
+struct LetStatement {
+    name: *char,
+    var_type: *AstType,
+    has_init: int
+}
+
+struct ReturnStatement {
+    has_value: int
+}
+
+struct ExpressionStatement {
+    dummy: int
+}
+
+// Generic statement node  
+// kind: 0=let, 1=return, 2=expression, 3=if, 4=while, 5=for, 6=break, 7=continue
+struct Statement {
+    kind: int,
+    data: *void
+}
+
+// Function declaration
+struct Function {
+    name: *char,
+    params: DynamicArray[Parameter],
+    return_type: *AstType,
+    body: DynamicArray[Statement]
+}
+
+// Struct field
+struct StructField {
+    name: *char,
+    field_type: *AstType
+}
+
+// Struct declaration
+struct StructDecl {
+    name: *char,
+    fields: DynamicArray[StructField]
+}
+
+// Import statement
+struct Import {
+    module_path: *char,
+    has_alias: int,
+    alias: *char
+}
+
+// Export item
+// kind: 0=function, 1=struct, 2=enum
+struct Export {
+    kind: int,
+    name: *char
+}
+
+// Top-level program
+struct Program {
+    imports: DynamicArray[Import],
+    exports: DynamicArray[Export],
+    functions: DynamicArray[Function],
+    structs: DynamicArray[StructDecl]
+}
+
+// ============================================================================
+// Type Constructor Functions
+// ============================================================================
+
+export fn make_int_type() -> *AstType {
+    let ptr: *void = malloc(16);  // sizeof AstType
+    let t: *AstType = ptr as *AstType;
+    t.kind = 0;  // int
+    t.name = "";
+    t.inner = 0 as *AstType;
+    return t;
+}
+
+export fn make_pointer_type(inner: *AstType) -> *AstType {
+    let ptr: *void = malloc(16);
+    let t: *AstType = ptr as *AstType;
+    t.kind = 2;  // pointer
+    t.name = "";
+    t.inner = inner;
+    return t;
+}
+
+export fn make_named_type(name: *char) -> *AstType {
+    let ptr: *void = malloc(16);
+    let t: *AstType = ptr as *AstType;
+    t.kind = 3;  // named/struct type
+    t.name = name;
+    t.inner = 0 as *AstType;
+    return t;
+}
+
+// ============================================================================
+// AST Node Constructors
+// ============================================================================
+
+export fn make_parameter(name: *char, param_type: *AstType) -> Parameter {
+    return Parameter { name: name, param_type: param_type };
+}
+
+export fn make_let_statement(name: *char, var_type: *AstType, has_init: int) -> Statement {
+    let ptr: *void = malloc(16);
+    let let_stmt: *LetStatement = ptr as *LetStatement;
+    let_stmt.name = name;
+    let_stmt.var_type = var_type;
+    let_stmt.has_init = has_init;
+    
+    return Statement { kind: 0, data: ptr };
+}
+
+export fn make_return_statement(has_value: int) -> Statement {
+    let ptr: *void = malloc(8);
+    let ret_stmt: *ReturnStatement = ptr as *ReturnStatement;
+    ret_stmt.has_value = has_value;
+    
+    return Statement { kind: 1, data: ptr };
+}
+
+export fn make_function(name: *char) -> Function {
+    let empty_params = DynamicArray[Parameter]();
+    let empty_body = DynamicArray[Statement]();
+    
+    return Function {
+        name: name,
+        params: empty_params,
+        return_type: 0 as *AstType,
+        body: empty_body
+    };
+}
+
+export fn make_struct(name: *char) -> StructDecl {
+    let empty_fields = DynamicArray[StructField]();
+    
+    return StructDecl {
+        name: name,
+        fields: empty_fields
+    };
+}
+
+export fn make_struct_field(name: *char, field_type: *AstType) -> StructField {
+    return StructField { name: name, field_type: field_type };
+}
+
+export fn make_import(module_path: *char) -> Import {
+    return Import {
+        module_path: module_path,
+        has_alias: 0,
+        alias: ""
+    };
+}
+
+export fn make_export(kind: int, name: *char) -> Export {
+    return Export { kind: kind, name: name };
+}
+
+export fn make_program() -> Program {
+    let empty_imports = DynamicArray[Import]();
+    let empty_exports = DynamicArray[Export]();
+    let empty_functions = DynamicArray[Function]();
+    let empty_structs = DynamicArray[StructDecl]();
+    
+    return Program {
+        imports: empty_imports,
+        exports: empty_exports,
+        functions: empty_functions,
+        structs: empty_structs
+    };
+}
+
+// ============================================================================
+// AST Printing Functions (for debugging)
+// ============================================================================
+
+export fn print_type(t: *AstType) {
+    if t == (0 as *AstType) {
+        printf("void");
+        return;
+    }
+    
+    if t.kind == 0 {
+        printf("int");
+    } else {
+        if t.kind == 2 {
+            printf("*");
+            print_type(t.inner);
+        } else {
+            if t.kind == 3 {
+                printf("%s", t.name);
+            } else {
+                printf("unknown_type");
+            }
+        }
+    }
+}
+
+export fn print_parameter(p: Parameter) {
+    printf("%s: ", p.name);
+    print_type(p.param_type);
+}
+
+export fn print_function(f: Function) {
+    printf("fn %s(", f.name);
+    
+    let i = 0;
+    let count: int = f.params.length();
+    for i : 0..count {
+        if i > 0 {
+            printf(", ");
+        }
+        print_parameter(f.params[i]);
+    }
+    
+    printf(")");
+    
+    if f.return_type != (0 as *AstType) {
+        printf(" -> ");
+        print_type(f.return_type);
+    }
+    
+    printf(" { ... }\n");
+}
+
+export fn print_struct(s: StructDecl) {
+    printf("struct %s {\n", s.name);
+    
+    let i = 0;
+    let count: int = s.fields.length();
+    for i : 0..count {
+        let field: StructField = s.fields[i];
+        printf("  %s: ", field.name);
+        print_type(field.field_type);
+        printf(",\n");
+    }
+    
+    printf("}\n");
+}
+
+export fn print_import(imp: Import) {
+    printf("import %s", imp.module_path);
+    if imp.has_alias != 0 {
+        printf(" as %s", imp.alias);
+    }
+    printf("\n");
+}
+
+export fn print_export(exp: Export) {
+    printf("export ");
+    if exp.kind == 0 {
+        printf("fn %s\n", exp.name);
+    } else {
+        if exp.kind == 1 {
+            printf("struct %s\n", exp.name);
+        } else {
+            printf("enum %s\n", exp.name);
+        }
+    }
+}
+
+export fn print_program(prog: Program) {
+    printf("=== AST: Program ===\n\n");
+    
+    // Print imports
+    let i = 0;
+    let import_count: int = prog.imports.length();
+    if import_count > 0 {
+        printf("Imports:\n");
+        for i : 0..import_count {
+            printf("  ");
+            print_import(prog.imports[i]);
+        }
+        printf("\n");
+    }
+    
+    // Print exports
+    let j = 0;
+    let export_count: int = prog.exports.length();
+    if export_count > 0 {
+        printf("Exports:\n");
+        for j : 0..export_count {
+            printf("  ");
+            print_export(prog.exports[j]);
+        }
+        printf("\n");
+    }
+    
+    // Print structs
+    let k = 0;
+    let struct_count: int = prog.structs.length();
+    if struct_count > 0 {
+        printf("Structs:\n");
+        for k : 0..struct_count {
+            printf("  ");
+            print_struct(prog.structs[k]);
+        }
+        printf("\n");
+    }
+    
+    // Print functions
+    let m = 0;
+    let func_count: int = prog.functions.length();
+    if func_count > 0 {
+        printf("Functions:\n");
+        for m : 0..func_count {
+            printf("  ");
+            print_function(prog.functions[m]);
+        }
+    }
+    
+    printf("\n=== End AST ===\n");
+}
+
+// ============================================================================
+// Memory Management
+// ============================================================================
+
+export fn free_type(t: *AstType) {
+    if t == (0 as *AstType) {
+        return;
+    }
+    
+    if t.inner != (0 as *AstType) {
+        free_type(t.inner);
+    }
+    
+    free(t as *void);
+}
+
+export fn free_statement(s: Statement) {
+    if s.data != (0 as *void) {
+        free(s.data);
+    }
+}

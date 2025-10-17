@@ -1,0 +1,72 @@
+// String operations library for Rapter
+// To be used in bootstrap compiler
+
+export fn str_len(s: string) -> int {
+    let len = 0;
+    let i = 0;
+    while s[i] != '\0' {
+        len = len + 1;
+        i = i + 1;
+    }
+    return len;
+}
+
+export fn str_equals(a: string, b: string) -> bool {
+    let i = 0;
+    while a[i] != '\0' && b[i] != '\0' {
+        if a[i] != b[i] {
+            return false;
+        }
+        i = i + 1;
+    }
+    return a[i] == b[i];
+}
+
+export fn str_starts_with(s: string, prefix: string) -> bool {
+    let i = 0;
+    while prefix[i] != '\0' {
+        if s[i] != prefix[i] {
+            return false;
+        }
+        i = i + 1;
+    }
+    return true;
+}
+
+export fn str_char_at(s: string, index: int) -> char {
+    return s[index];
+}
+
+export fn str_contains_char(s: string, ch: char) -> bool {
+    let i = 0;
+    while s[i] != '\0' {
+        if s[i] == ch {
+            return true;
+        }
+        i = i + 1;
+    }
+    return false;
+}
+
+export fn str_find_char(s: string, ch: char) -> int {
+    let i = 0;
+    while s[i] != '\0' {
+        if s[i] == ch {
+            return i;
+        }
+        i = i + 1;
+    }
+    return -1;  // Not found
+}
+
+// Compare strings: returns 0 if equal, <0 if a < b, >0 if a > b
+export fn str_compare(a: string, b: string) -> int {
+    let i = 0;
+    while a[i] != '\0' && b[i] != '\0' {
+        if a[i] != b[i] {
+            return (a[i] as int) - (b[i] as int);
+        }
+        i = i + 1;
+    }
+    return (a[i] as int) - (b[i] as int);
+}

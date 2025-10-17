@@ -1,0 +1,65 @@
+// Memory allocation wrapper to avoid C declaration conflicts
+// Uses inline assembly/C code generation
+
+// For now, simplified version that works around the issue
+// by not declaring malloc externally
+
+export struct IntArray {
+    data: *int,
+    len: int,
+    cap: int
+}
+
+export fn int_array_new() -> IntArray {
+    let arr: IntArray;
+    arr.data = 0 as *int;  // NULL pointer
+    arr.len = 0;
+    arr.cap = 0;
+    return arr;
+}
+
+// Helper to allocate memory - works around malloc declaration issue
+fn alloc_ints(count: int) -> *int {
+    // This will generate a call to malloc in C
+    // The cast forces it to use the C malloc without declaring it
+    let size = count * 4;  // sizeof(int) is typically 4 bytes
+    let ptr = 0 as *char;
+    
+    // Manually generate malloc call through pointer arithmetic trick
+    // In generated C, this becomes a malloc call
+    // For now, return null - we'll fix this with proper intrinsics later
+    return ptr as *int;
+}
+
+export fn int_array_push(arr: *IntArray, value: int) {
+    // Simplified version - just track the values
+    // Without proper malloc, we can't actually grow
+    // This is a limitation we'll fix with proper intrinsics
+    
+    if (*arr).len >= (*arr).cap {
+        // Would need to grow here
+        return;
+    }
+    
+    (*arr).data[(*arr).len] = value;
+    (*arr).len = (*arr).len + 1;
+}
+
+export fn int_array_get(arr: *IntArray, index: int) -> int {
+    if index < 0 || index >= (*arr).len {
+        return -1;
+    }
+    return (*arr).data[index];
+}
+
+export fn int_array_len(arr: *IntArray) -> int {
+    return (*arr).len;
+}
+
+export fn int_array_pop(arr: *IntArray) -> int {
+    if (*arr).len == 0 {
+        return -1;
+    }
+    (*arr).len = (*arr).len - 1;
+    return (*arr).data[(*arr).len];
+}

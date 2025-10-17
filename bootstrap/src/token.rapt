@@ -1,0 +1,72 @@
+// ============================================================================
+// TOKEN.RAPT - Token definitions for bootstrap compiler (WITH ENUMS!)
+// ============================================================================
+
+export struct Span {
+    start: int,
+    end: int
+}
+
+export struct Token {
+    kind: TokenKind,
+    span: Span
+}
+
+// Token kinds as an ENUM!
+export enum TokenKind {
+    EOF = 0,
+    IDENT = 1,
+    INTEGER = 2,
+    FLOAT = 3,
+    STRING = 4,
+    CHAR = 5,
+    LPAREN = 6,
+    RPAREN = 7,
+    LBRACE = 8,
+    RBRACE = 9,
+    LBRACKET = 10,
+    RBRACKET = 11,
+    COMMA = 12,
+    DOT = 13,
+    SEMI = 14,
+    COLON = 15,
+    EQ = 16,
+    PLUS = 17,
+    MINUS = 18,
+    STAR = 19,
+    SLASH = 20,
+    PERCENT = 21,
+    BANG = 22,
+    LT = 23,
+    GT = 24,
+    LTEQ = 25,
+    GTEQ = 26,
+    EQEQ = 27,
+    NOTEQ = 28,
+    ANDAND = 29,
+    OROR = 30,
+    ARROW = 31,
+    FATARROW = 32,
+    QUESTION = 33,
+    FN = 40,
+    LET = 41,
+    MUT = 42,
+    CONST = 43,
+    RETURN = 44,
+    IF = 45,
+    ELSE = 46,
+    WHILE = 47,
+    FOR = 48,
+    IMPORT = 49,
+    EXPORT = 50,
+    EXTERN = 51,
+    BREAK = 52,
+    CONTINUE = 53,
+    MATCH = 54,
+    AS = 55,
+    INT_TYPE = 56,
+    CHAR_TYPE = 57,
+    STRUCT = 58,
+    NEW = 59,
+    ENUM = 60
+}

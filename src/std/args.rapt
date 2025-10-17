@@ -1,0 +1,11 @@
+// Command-line arguments access
+extern fn rapter_get_argc() -> int;
+extern fn rapter_get_argv(i: int) -> *char;
+
+export fn argc() -> int {
+    return rapter_get_argc();
+}
+
+export fn argv(i: int) -> *char {
+    return rapter_get_argv(i);
+}

@@ -1,0 +1,5 @@
+import token
+
+fn test() -> int {
+    return 42;
+}

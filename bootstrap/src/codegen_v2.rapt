@@ -1,0 +1,188 @@
+// ============================================================================
+// CODEGEN_V2.RAPT - AST-based Code Generator
+// ============================================================================
+// Translates AST to C code (cleaner than token-based approach)
+// ============================================================================
+
+import bootstrap.src.ast_v2 as ast
+
+extern fn printf(format: *char, ...) -> int;
+extern fn sprintf(buffer: *char, format: *char, ...) -> int;
+extern fn strlen(s: *char) -> int;
+extern fn malloc(size: int) -> *void;
+extern fn strcpy(dest: *char, src: *char) -> *char;
+extern fn strcat(dest: *char, src: *char) -> *char;
+
+// ============================================================================
+// STRING BUILDER - Dynamic string construction
+// ============================================================================
+
+struct StringBuilder {
+    buffer: *char,
+    length: int,
+    capacity: int
+}
+
+export fn make_string_builder() -> StringBuilder {
+    let cap = 65536;
+    let buf = malloc(cap) as *char;
+    buf[0] = 0;
+    return StringBuilder { buffer: buf, length: 0, capacity: cap };
+}
+
+export fn sb_append(sb: *StringBuilder, text: *char) {
+    strcat(sb.buffer, text);
+    sb.length = sb.length + strlen(text);
+}
+
+export fn sb_append_line(sb: *StringBuilder, text: *char) {
+    sb_append(sb, text);
+    sb_append(sb, "\n");
+}
+
+export fn sb_get_string(sb: *StringBuilder) -> *char {
+    return sb.buffer;
+}
+
+// ============================================================================
+// C HEADER GENERATION
+// ============================================================================
+
+export fn emit_c_headers(sb: *StringBuilder) {
+    sb_append_line(sb, "#include <stdio.h>");
+    sb_append_line(sb, "#include <stdlib.h>");
+    sb_append_line(sb, "#include <string.h>");
+    sb_append_line(sb, "");
+}
+
+// ============================================================================
+// TYPE CONVERSION (Rapter → C)
+// ============================================================================
+
+export fn type_to_c(typ: *ast.AstType) -> *char {
+    let result = malloc(256) as *char;
+    
+    if typ.is_int == 1 {
+        strcpy(result, "int");
+    } else {
+        if typ.is_char == 1 {
+            strcpy(result, "char");
+        } else {
+            if typ.is_float == 1 {
+                strcpy(result, "double");
+            } else {
+                if typ.is_void == 1 {
+                    strcpy(result, "void");
+                } else {
+                    strcpy(result, typ.name);
+                }
+            }
+        }
+    }
+    
+    if typ.is_pointer == 1 {
+        strcat(result, "*");
+    }
+    
+    return result;
+}
+
+// ============================================================================
+// STRUCT GENERATION
+// ============================================================================
+
+export fn emit_struct(sb: *StringBuilder, s: ast.StructDecl) {
+    let line = malloc(512) as *char;
+    sprintf(line, "typedef struct %s {", s.name);
+    sb_append_line(sb, line);
+    
+    let i = 0;
+    while i < s.fields.length() {
+        let field = s.fields.get(i);
+        let field_type = type_to_c(field.field_type);
+        let field_line = malloc(512) as *char;
+        sprintf(field_line, "    %s %s;", field_type, field.name);
+        sb_append_line(sb, field_line);
+        i = i + 1;
+    }
+    
+    let close = malloc(256) as *char;
+    sprintf(close, "} %s;", s.name);
+    sb_append_line(sb, close);
+    sb_append_line(sb, "");
+}
+
+// ============================================================================
+// STATEMENT GENERATION
+// ============================================================================
+
+export fn emit_return_stmt(sb: *StringBuilder) {
+    sb_append_line(sb, "    return 0;");
+}
+
+export fn emit_statement(sb: *StringBuilder, stmt: ast.Statement) {
+    if stmt.is_return == 1 {
+        emit_return_stmt(sb);
+    } else {
+        sb_append_line(sb, "    // TODO: statement");
+    }
+}
+
+// ============================================================================
+// FUNCTION GENERATION
+// ============================================================================
+
+export fn emit_function(sb: *StringBuilder, func: ast.Function) {
+    let ret_type = type_to_c(func.return_type);
+    let sig = malloc(1024) as *char;
+    sprintf(sig, "%s %s()", ret_type, func.name);
+    
+    sb_append(sb, sig);
+    sb_append_line(sb, " {");
+    
+    let i = 0;
+    while i < func.body.length() {
+        let stmt = func.body.get(i);
+        emit_statement(sb, stmt);
+        i = i + 1;
+    }
+    
+    sb_append_line(sb, "}");
+    sb_append_line(sb, "");
+}
+
+// ============================================================================
+// PROGRAM GENERATION
+// ============================================================================
+
+export fn generate_c_code(prog: ast.Program) -> Result<*char, str> {
+    let sb = make_string_builder();
+    
+    emit_c_headers(&sb);
+    
+    let i = 0;
+    while i < prog.structs.length() {
+        let s = prog.structs.get(i);
+        emit_struct(&sb, s);
+        i = i + 1;
+    }
+    
+    let j = 0;
+    while j < prog.functions.length() {
+        let func = prog.functions.get(j);
+        emit_function(&sb, func);
+        j = j + 1;
+    }
+    
+    return Result::Ok(sb_get_string(&sb));
+}
+
+// ============================================================================
+// TESTING/DEMO
+// ============================================================================
+
+export fn test_codegen() -> int {
+    printf("Code Generator V2 - AST-based C transpiler\n");
+    printf("Ready to translate AST to C code!\n");
+    return 0;
+}

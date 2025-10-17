@@ -1,0 +1,8 @@
+// Test file for lexer
+fn main() -> int {
+    let x = 42;
+    if x == 42 {
+        return x;
+    }
+    return 0;
+}

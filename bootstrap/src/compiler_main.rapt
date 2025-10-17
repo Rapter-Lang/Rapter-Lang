@@ -1,0 +1,136 @@
+// ============================================================================
+// COMPILER_MAIN.RAPT - Bootstrap Compiler Main Entry Point
+// ============================================================================
+// Complete pipeline: Source → Tokens → AST → Validated AST → C Code
+// ============================================================================
+
+import bootstrap.src.wrappers as w
+
+extern fn printf(format: *char, ...) -> int;
+extern fn read_all(path: *char) -> *char;
+extern fn write_all(path: *char, data: *char) -> int;
+
+// ============================================================================
+// COMPILER PIPELINE
+// ============================================================================
+
+export fn compile_file(input_path: *char, output_path: *char) -> Result<int, str> {
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════╗\n");
+    printf("║                                                              ║\n");
+    printf("║         RAPTER BOOTSTRAP COMPILER - v0.1.0                   ║\n");
+    printf("║                                                              ║\n");
+    printf("╚══════════════════════════════════════════════════════════════╝\n");
+    printf("\n");
+    
+    printf("Input:  %s\n", input_path);
+    printf("Output: %s\n\n", output_path);
+    
+    // ========================================================================
+    // STEP 1: READ SOURCE FILE
+    // ========================================================================
+    printf("[1/5] Reading source file...\n");
+    let source = read_all(input_path);
+    if source[0] == 0 {
+        return Result::Err("Failed to read source file");
+    }
+    printf("      ✓ Source loaded\n\n");
+    
+    // ========================================================================
+    // STEP 2: TOKENIZE
+    // ========================================================================
+    printf("[2/5] Tokenizing...\n");
+    let tokens = w.lex_source(source)?;
+    printf("      ✓ %d tokens generated\n\n", tokens.length());
+    
+    // ========================================================================
+    // STEP 3: PARSE
+    // ========================================================================
+    printf("[3/5] Parsing...\n");
+    let ast_prog = w.parse(tokens)?;
+    printf("      ✓ AST constructed\n");
+    printf("        - Functions: %d\n", ast_prog.functions.length());
+    printf("        - Structs:   %d\n\n", ast_prog.structs.length());
+    
+    // ========================================================================
+    // STEP 4: TYPE CHECK
+    // ========================================================================
+    printf("[4/5] Type checking...\n");
+    let check_result = w.typecheck(ast_prog)?;
+    if check_result == 0 {
+        return Result::Err("Type checking failed");
+    }
+    printf("      ✓ Types validated\n\n");
+    
+    // ========================================================================
+    // STEP 5: GENERATE C CODE
+    // ========================================================================
+    printf("[5/5] Generating C code...\n");
+    let c_code = w.generate_code(ast_prog)?;
+    printf("      ✓ C code generated\n\n");
+    
+    // ========================================================================
+    // WRITE OUTPUT
+    // ========================================================================
+    printf("Writing to %s...\n", output_path);
+    let write_result = write_all(output_path, c_code);
+    if write_result != 0 {
+        return Result::Err("Failed to write output file");
+    }
+    
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════╗\n");
+    printf("║                                                              ║\n");
+    printf("║              ✅  COMPILATION SUCCESSFUL! ✅                 ║\n");
+    printf("║                                                              ║\n");
+    printf("╚══════════════════════════════════════════════════════════════╝\n");
+    printf("\n");
+    printf("Next steps:\n");
+    printf("  1. gcc %s -o program\n", output_path);
+    printf("  2. ./program\n");
+    printf("\n");
+    
+    return Result::Ok(0);
+}
+
+// ============================================================================
+// MAIN ENTRY POINT
+// ============================================================================
+
+fn main() -> int {
+    // TODO: Parse command line arguments
+    // For now, use hardcoded test
+    
+    let input = "examples/simple_test.rapt";
+    let output = "simple_test.c";
+    
+    printf("Rapter Bootstrap Compiler\n");
+    printf("=========================\n\n");
+    
+    let result = compile_file(input, output);
+    
+    let status: int = match result {
+        Result::Ok(s) => s,
+        Result::Err(msg) => {
+            printf("\n");
+            printf("╔══════════════════════════════════════════════════════════════╗\n");
+            printf("║                                                              ║\n");
+            printf("║              ❌  COMPILATION FAILED! ❌                     ║\n");
+            printf("║                                                              ║\n");
+            printf("╚══════════════════════════════════════════════════════════════╝\n");
+            printf("\n");
+            printf("Error: %s\n\n", msg);
+            return 1;
+        }
+    };
+    
+    return status;
+}
+
+// ============================================================================
+// TODO for tomorrow:
+// - Test with simple program
+// - Add command-line argument parsing
+// - Add verbose mode for debugging
+// - Add optimization flags
+// ============================================================================

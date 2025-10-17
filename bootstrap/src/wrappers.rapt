@@ -1,0 +1,46 @@
+// ============================================================================
+// WRAPPERS.RAPT - Module function wrappers for easy calling
+// ============================================================================
+// Quick fix for module-qualified function call limitations
+// Instead of: lexer.tokenize_v2(input)
+// Use:        tokenize(input)
+// ============================================================================
+
+import bootstrap.src.lexer_v2 as lexer
+import bootstrap.src.ast_v2 as ast
+import bootstrap.src.parser_v2 as parser
+import bootstrap.src.typechecker as tc
+import bootstrap.src.codegen_v2 as codegen
+
+// ============================================================================
+// LEXER WRAPPERS
+// ============================================================================
+
+export fn lex_source(input: *char) -> Result<DynamicArray[Token], str> {
+    return lexer.tokenize_v2(input);
+}
+
+// ============================================================================
+// PARSER WRAPPERS
+// ============================================================================
+
+export fn parse(tokens: DynamicArray[Token]) -> Result<Program, str> {
+    return parser.parse_program(tokens);
+}
+
+// ============================================================================
+// TYPE CHECKER WRAPPERS
+// ============================================================================
+
+export fn typecheck(prog: Program) -> Result<int, str> {
+    return tc.check_program(prog);
+}
+
+// ============================================================================
+// CODE GENERATOR WRAPPERS
+// ============================================================================
+
+export fn generate_code(prog: Program) -> Result<*char, str> {
+    return codegen.generate_c_code(prog);
+}
+

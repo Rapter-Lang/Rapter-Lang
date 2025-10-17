@@ -1,0 +1,24 @@
+// String utilities
+extern fn strlen(s: *char) -> int;
+
+export fn length(s: string) -> int {
+    return strlen(s);
+}
+
+export fn equals(a: string, b: string) -> int {
+    let la = strlen(a);
+    let lb = strlen(b);
+    if la != lb {
+        return 0;
+    }
+    let i = 0;
+    for i : 0..la {
+        if a[i] != b[i] {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// concat is available via language-level '+' on strings
+

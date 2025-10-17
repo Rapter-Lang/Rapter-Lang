@@ -1,0 +1,36 @@
+// Fibonacci sequence calculator
+// Demonstrates functions, loops, and basic arithmetic
+
+extern fn printf(format: *char, ...) -> int;
+
+fn fibonacci(n: int) -> int {
+    if n <= 1 {
+        return n;
+    }
+    
+    let mut a = 0;
+    let mut b = 1;
+    let mut i = 2;
+    
+    while i <= n {
+        let temp = a + b;
+        a = b;
+        b = temp;
+        i = i + 1;
+    }
+    
+    return b;
+}
+
+fn main() -> int {
+    printf("Fibonacci sequence:\n");
+    
+    let mut i = 0;
+    while i < 10 {
+        let fib = fibonacci(i);
+        printf("F(%d) = %d\n", i, fib);
+        i = i + 1;
+    }
+    
+    return 0;
+}

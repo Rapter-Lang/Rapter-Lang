@@ -1,0 +1,10 @@
+// Simple Hello World program
+// Demonstrates basic I/O in Rapter
+
+extern fn printf(format: *char, ...) -> int;
+
+fn main() -> int {
+    printf("Hello, World!\n");
+    printf("Welcome to Rapter!\n");
+    return 0;
+}

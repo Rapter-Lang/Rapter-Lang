@@ -1,0 +1,75 @@
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+build/
+.build/
+target/
+
+# Generated files
+*.c
+*.o
+*.obj
+*.a
+*.lib
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Rapter specific
+output.c
+output.exe
+*.rapt.c
+test_output.*
+
+# Cargo
+Cargo.lock
+
+# Development/Internal only (not pushed to GitHub)
+# Keep only essential examples, exclude working files
+examples/*
+!examples/README.md
+!examples/hello.rapt
+!examples/fibonacci.rapt
+!examples/structs_demo.rapt
+
+# Exclude bootstrap working files (keep source but not artifacts)
+bootstrap/*.exe
+bootstrap/*.c
+bootstrap/*.o
+
+# Exclude development documentation (keep only essentials)
+FEATURE_ROADMAP.md
+PROJECT_ESSENTIALS.md
+CHEATSHEET.md
+SELF_HOSTING_VICTORY.md
+deep_cleanup.ps1
+cleanup.ps1
+status.ps1
+
+# Keep these committed:
+# - README.md
+# - CONTRIBUTING.md
+# - CHANGELOG.md
+# - QUICKSTART.md
+# - LICENSE
+# - RAPTER_CLI.md
+# - install.ps1
+# - rapter.ps1
+# - rapter.bat
+# - src/ (Rust compiler)
+# - lib/ (Standard library)
+# - bootstrap/src/ (Bootstrap compiler source)
+# - examples/ (only hello.rapt, fibonacci.rapt, structs_demo.rapt)

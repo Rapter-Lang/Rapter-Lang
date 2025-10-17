@@ -1,0 +1,75 @@
+// ============================================================================
+// TOKEN.RAPT - Token definitions for bootstrap compiler
+// ============================================================================
+
+export struct Span {
+    start: int,
+    end: int
+}
+
+export struct Token {
+    kind: int,
+    span: Span
+}
+
+// Token kinds
+export fn TK_EOF() -> int { return 0; }
+export fn TK_IDENT() -> int { return 1; }
+export fn TK_INTEGER() -> int { return 2; }
+export fn TK_FLOAT() -> int { return 3; }
+export fn TK_STRING() -> int { return 4; }
+export fn TK_CHAR() -> int { return 5; }
+
+// Delimiters
+export fn TK_LPAREN() -> int { return 6; }
+export fn TK_RPAREN() -> int { return 7; }
+export fn TK_LBRACE() -> int { return 8; }
+export fn TK_RBRACE() -> int { return 9; }
+export fn TK_LBRACKET() -> int { return 10; }
+export fn TK_RBRACKET() -> int { return 11; }
+
+// Punctuation
+export fn TK_COMMA() -> int { return 12; }
+export fn TK_DOT() -> int { return 13; }
+export fn TK_SEMI() -> int { return 14; }
+export fn TK_COLON() -> int { return 15; }
+
+// Operators
+export fn TK_EQ() -> int { return 16; }
+export fn TK_PLUS() -> int { return 17; }
+export fn TK_MINUS() -> int { return 18; }
+export fn TK_STAR() -> int { return 19; }
+export fn TK_SLASH() -> int { return 20; }
+export fn TK_PERCENT() -> int { return 21; }
+export fn TK_BANG() -> int { return 22; }
+export fn TK_LT() -> int { return 23; }
+export fn TK_GT() -> int { return 24; }
+export fn TK_LTEQ() -> int { return 25; }
+export fn TK_GTEQ() -> int { return 26; }
+export fn TK_EQEQ() -> int { return 27; }
+export fn TK_NOTEQ() -> int { return 28; }
+export fn TK_ANDAND() -> int { return 29; }
+export fn TK_OROR() -> int { return 30; }
+export fn TK_ARROW() -> int { return 31; }
+export fn TK_QUESTION() -> int { return 32; }
+
+// Keywords
+export fn TK_FN() -> int { return 40; }
+export fn TK_LET() -> int { return 41; }
+export fn TK_MUT() -> int { return 42; }
+export fn TK_CONST() -> int { return 43; }
+export fn TK_RETURN() -> int { return 44; }
+export fn TK_IF() -> int { return 45; }
+export fn TK_ELSE() -> int { return 46; }
+export fn TK_WHILE() -> int { return 47; }
+export fn TK_FOR() -> int { return 48; }
+export fn TK_IMPORT() -> int { return 49; }
+export fn TK_EXPORT() -> int { return 50; }
+export fn TK_EXTERN() -> int { return 51; }
+export fn TK_BREAK() -> int { return 52; }
+export fn TK_CONTINUE() -> int { return 53; }
+export fn TK_AS() -> int { return 54; }
+export fn TK_INT_TYPE() -> int { return 55; }
+export fn TK_CHAR_TYPE() -> int { return 56; }
+export fn TK_STRUCT() -> int { return 57; }
+export fn TK_NEW() -> int { return 58; }

@@ -1,0 +1,6 @@
+import std.io
+
+fn main() -> int {
+    io.println("Hello, Rapter!")
+    return 0
+}

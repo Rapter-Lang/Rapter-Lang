@@ -1,0 +1,15 @@
+// Character utilities (no extern deps)
+// Return boolean results
+
+export fn is_alpha(c: char) -> bool {
+    return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
+}
+
+export fn is_digit(c: char) -> bool {
+    return (c >= '0' && c <= '9');
+}
+
+export fn is_space(c: char) -> bool {
+    // Keep to well-supported whitespace characters in bootstrap phase.
+    return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+}

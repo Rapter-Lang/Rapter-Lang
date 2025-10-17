@@ -1,0 +1,2051 @@
+// ============================================================================// ============================================================================// ============================================================================// bootstrap/src/codegen.rapt
+
+// CODEGEN.RAPT - Bootstrap compiler code generator
+
+// ============================================================================// CODEGEN.RAPT - Bootstrap compiler code generator
+
+// This module generates C code from a stream of tokens.
+
+// Strategy: Single-pass token processing with context tracking.// ============================================================================// RAPTER BOOTSTRAP COMPILER - CODE GENERATION MODULE// Rewritten for clarity and completeness
+
+// ============================================================================
+
+// This module generates C code from a stream of tokens.
+
+import token
+
+// Strategy: Single-pass token processing with context tracking.// ============================================================================
+
+extern fn printf(format: *char, ...) -> int;
+
+extern fn strlen(s: *char) -> int;// ============================================================================
+
+extern fn malloc(size: int) -> *char;
+
+extern fn free(ptr: *char);// This module generates C code from Rapter tokens.import src.std.fs as fs
+
+
+
+// ============================================================================import token
+
+// STRING BUFFER HELPERS
+
+// ============================================================================// It supports:import src.std.str as str
+
+
+
+// Append a string to bufferextern fn printf(format: *char, ...) -> int;
+
+fn buf_append(buf: *char, idx: *int, s: *char) {
+
+    let i = 0;extern fn strlen(s: *char) -> int;//   - print/println statements with string/char/int literalsimport bootstrap.src.token as token
+
+    while s[i] != 0 {
+
+        buf[*idx] = s[i];
+
+        *idx = *idx + 1;
+
+        i = i + 1;// ============================================================================//   - Variable declarations (let x = value)
+
+    }
+
+}// STRING BUFFER HELPERS
+
+
+
+// Append a single character// ============================================================================//   - Basic expressions (x + y, x - y, etc.)extern fn printf(format: *char, ...) -> int;
+
+fn buf_append_char(buf: *char, idx: *int, c: char) {
+
+    buf[*idx] = c;
+
+    *idx = *idx + 1;
+
+}// Append a string to buffer//   - Control flow (if/else, while, for)extern fn sprintf(buf: *char, fmt: *char, ...) -> int;
+
+
+
+// Append a token's text from inputfn buf_append(buf: *char, idx: *int, s: *char) {
+
+fn buf_append_token(buf: *char, idx: *int, input: *char, tok: Token) {
+
+    let i = tok.span.start;    let i = 0;//   - Function definitionsextern fn malloc(size: int) -> *char;
+
+    while i < tok.span.end {
+
+        buf[*idx] = input[i];    while s[i] != 0 {
+
+        *idx = *idx + 1;
+
+        i = i + 1;        buf[*idx] = s[i];// ============================================================================extern fn free(ptr: *char);
+
+    }
+
+}        *idx = *idx + 1;
+
+
+
+// ============================================================================        i = i + 1;
+
+// C CODE GENERATION HEADERS
+
+// ============================================================================    }
+
+
+
+fn emit_headers(buf: *char, idx: *int) {}import token;// ============================================================================
+
+    buf_append(buf, idx, "#include <stdio.h>\n");
+
+    buf_append(buf, idx, "#include <stdlib.h>\n");
+
+    buf_append(buf, idx, "#include <string.h>\n");
+
+    buf_append(buf, idx, "#include <stddef.h>\n\n");// Append a single characterimport std.io;// HELPER FUNCTIONS
+
+}
+
+fn buf_append_char(buf: *char, idx: *int, c: char) {
+
+// ============================================================================
+
+// FUNCTION GENERATION    buf[*idx] = c;import std.string;// ============================================================================
+
+// ============================================================================
+
+    *idx = *idx + 1;
+
+// Generate a function from tokens
+
+// Returns the position after the function}import std.array;
+
+fn generate_function(buf: *char, idx: *int, input: *char, 
+
+                     toks: DynamicArray[Token], pos: int) -> int {
+
+    let i = pos;
+
+    let len = toks.length();// Append a token's text from inputimport std.mem;fn lex_equals(input: *char, start: int, end: int, target: string) -> int {
+
+    
+
+    // Skip 'export' if presentfn buf_append_token(buf: *char, idx: *int, input: *char, tok: Token) {
+
+    if i < len && toks[i].kind == token.TK_EXPORT() {
+
+        i = i + 1;    let i = tok.span.start;    let target_len = str.length(target);
+
+    }
+
+        while i < tok.span.end {
+
+    // Skip 'extern' if present - we'll handle it differently
+
+    if i < len && toks[i].kind == token.TK_EXTERN() {        buf[*idx] = input[i];extern fn printf(format: *char, ...): int;    let span_len = end - start;
+
+        // For extern functions, just output declaration
+
+        i = i + 1;        *idx = *idx + 1;
+
+        if i < len && toks[i].kind == token.TK_FN() {
+
+            i = i + 1;        i = i + 1;extern fn sprintf(dest: *char, format: *char, ...): int;    
+
+        }
+
+            }
+
+        // Return type will be int by default
+
+        buf_append(buf, idx, "int ");}extern fn malloc(size: int): *char;    if span_len != target_len { return 0; }
+
+        
+
+        // Function name
+
+        if i < len && toks[i].kind == token.TK_IDENT() {
+
+            buf_append_token(buf, idx, input, toks[i]);// ============================================================================extern fn free(ptr: *char);    
+
+            i = i + 1;
+
+        }// C CODE GENERATION HEADERS
+
+        
+
+        // Parameters// ============================================================================extern fn strlen(s: *char): int;    let i = 0;
+
+        buf_append_char(buf, idx, '(');
+
+        if i < len && toks[i].kind == token.TK_LPAREN() {
+
+            i = i + 1;
+
+            // Copy parametersfn emit_headers(buf: *char, idx: *int) {extern fn strcpy(dest: *char, src: *char): *char;    while i < target_len {
+
+            let depth = 1;
+
+            while i < len && depth > 0 {    buf_append(buf, idx, "#include <stdio.h>\n");
+
+                if toks[i].kind == token.TK_LPAREN() {
+
+                    depth = depth + 1;    buf_append(buf, idx, "#include <stdlib.h>\n");extern fn strcat(dest: *char, src: *char): *char;        if input[start + i] != target[i] { return 0; }
+
+                }
+
+                if toks[i].kind == token.TK_RPAREN() {    buf_append(buf, idx, "#include <string.h>\n");
+
+                    depth = depth - 1;
+
+                    if depth == 0 {    buf_append(buf, idx, "#include <stddef.h>\n\n");        i = i + 1;
+
+                        i = i + 1;
+
+                    } else {}
+
+                        buf_append_token(buf, idx, input, toks[i]);
+
+                        buf_append_char(buf, idx, ' ');// ============================================================================    }
+
+                        i = i + 1;
+
+                    }// ============================================================================
+
+                } else {
+
+                    // Convert -> to nothing, : to nothing for simplicity// FUNCTION GENERATION// BUFFER UTILITIES    return 1;
+
+                    if toks[i].kind == token.TK_ARROW() || toks[i].kind == token.TK_COLON() {
+
+                        i = i + 1;// ============================================================================
+
+                    } else {
+
+                        buf_append_token(buf, idx, input, toks[i]);// ============================================================================}
+
+                        buf_append_char(buf, idx, ' ');
+
+                        i = i + 1;// Generate a function from tokens
+
+                    }
+
+                }// Returns the position after the function
+
+            }
+
+        }fn generate_function(buf: *char, idx: *int, input: *char, 
+
+        buf_append(buf, idx, ");\n\n");
+
+        return i;                     toks: DynamicArray[Token], pos: int) -> int {fn buf_append_str(buf: *char, idx: *int, s: *char) {fn token_is_keyword(t: Token, kw: string, input: *char) -> int {
+
+    }
+
+        let i = pos;
+
+    // Regular function: fn name ( params ) -> type { body }
+
+    if i < len && toks[i].kind == token.TK_FN() {    let len = toks.length();    let i = 0;    if t.kind == token.TK_IDENT() {
+
+        i = i + 1;
+
+    }    
+
+    
+
+    // Return type (default to int for main, otherwise void)    // Skip 'export' if present    while s[i] != 0 {        return lex_equals(input, t.span.start, t.span.end, kw);
+
+    let is_main = 0;
+
+    if i < len && toks[i].kind == token.TK_IDENT() {    if i < len && toks[i].kind == token.TK_EXPORT() {
+
+        let name_start = toks[i].span.start;
+
+        let name_end = toks[i].span.end;        i = i + 1;        buf[*idx] = s[i];    }
+
+        if name_end - name_start == 4 {
+
+            if input[name_start] == 'm' && input[name_start + 1] == 'a' &&     }
+
+               input[name_start + 2] == 'i' && input[name_start + 3] == 'n' {
+
+                is_main = 1;            *idx = *idx + 1;    // Check actual keyword token types
+
+            }
+
+        }    // Skip 'extern' if present - we'll handle it differently
+
+    }
+
+        if i < len && toks[i].kind == token.TK_EXTERN() {        i = i + 1;    if kw == "fn" && t.kind == token.TK_KW_FN() { return 1; }
+
+    if is_main != 0 {
+
+        buf_append(buf, idx, "int ");        // For extern functions, just output declaration
+
+    } else {
+
+        buf_append(buf, idx, "void ");        i = i + 1;    }    if kw == "let" && t.kind == token.TK_KW_LET() { return 1; }
+
+    }
+
+            if i < len && toks[i].kind == token.TK_FN() {
+
+    // Function name
+
+    if i < len && toks[i].kind == token.TK_IDENT() {            i = i + 1;}    if kw == "mut" && t.kind == token.TK_KW_MUT() { return 1; }
+
+        buf_append_token(buf, idx, input, toks[i]);
+
+        i = i + 1;        }
+
+    }
+
+                if kw == "if" && t.kind == token.TK_KW_IF() { return 1; }
+
+    // Parameters
+
+    buf_append(buf, idx, "() ");        // Return type will be int by default
+
+    if i < len && toks[i].kind == token.TK_LPAREN() {
+
+        i = i + 1;        buf_append(buf, idx, "int ");fn buf_append_char(buf: *char, idx: *int, ch: char) {    if kw == "else" && t.kind == token.TK_KW_ELSE() { return 1; }
+
+        // Skip parameters for now - just find matching )
+
+        let depth = 1;        
+
+        while i < len && depth > 0 {
+
+            if toks[i].kind == token.TK_LPAREN() {        // Function name    buf[*idx] = ch;    if kw == "while" && t.kind == token.TK_KW_WHILE() { return 1; }
+
+                depth = depth + 1;
+
+            }        if i < len && toks[i].kind == token.TK_IDENT() {
+
+            if toks[i].kind == token.TK_RPAREN() {
+
+                depth = depth - 1;            buf_append_token(buf, idx, input, toks[i]);    *idx = *idx + 1;    if kw == "return" && t.kind == token.TK_KW_RETURN() { return 1; }
+
+            }
+
+            i = i + 1;            i = i + 1;
+
+        }
+
+    }        }}    return 0;
+
+    
+
+    // Skip return type annotation if present        
+
+    if i < len && toks[i].kind == token.TK_ARROW() {
+
+        i = i + 1;        // Parameters}
+
+        // Skip the type
+
+        if i < len {        buf_append_char(buf, idx, '(');
+
+            i = i + 1;
+
+        }        if i < len && toks[i].kind == token.TK_LPAREN() {fn buf_append_int(buf: *char, idx: *int, n: int) {
+
+    }
+
+                i = i + 1;
+
+    // Function body
+
+    if i < len && toks[i].kind == token.TK_LBRACE() {            // Copy parameters    let temp = malloc(32);fn tokens_same_ident(input: *char, a: Token, b: Token) -> int {
+
+        buf_append(buf, idx, "{\n");
+
+        i = i + 1;            let depth = 1;
+
+        
+
+        // Generate body            while i < len && depth > 0 {    sprintf(temp, "%d", n);    if a.kind != token.TK_IDENT() || b.kind != token.TK_IDENT() { return 0; }
+
+        let depth = 1;
+
+        while i < len && depth > 0 {                if toks[i].kind == token.TK_LPAREN() {
+
+            if toks[i].kind == token.TK_LBRACE() {
+
+                buf_append(buf, idx, "    {\n");                    depth = depth + 1;    buf_append_str(buf, idx, temp);    
+
+                depth = depth + 1;
+
+                i = i + 1;                }
+
+            } else {
+
+                if toks[i].kind == token.TK_RBRACE() {                if toks[i].kind == token.TK_RPAREN() {    free(temp);    let len_a = a.span.end - a.span.start;
+
+                    depth = depth - 1;
+
+                    if depth > 0 {                    depth = depth - 1;
+
+                        buf_append(buf, idx, "    }\n");
+
+                    }                    if depth == 0 {}    let len_b = b.span.end - b.span.start;
+
+                    i = i + 1;
+
+                } else {                        i = i + 1;
+
+                    if toks[i].kind == token.TK_RETURN() {
+
+                        buf_append(buf, idx, "    return ");                    } else {    if len_a != len_b { return 0; }
+
+                        i = i + 1;
+
+                        // Copy until semicolon                        buf_append_token(buf, idx, input, toks[i]);
+
+                        while i < len && toks[i].kind != token.TK_SEMI() {
+
+                            buf_append_token(buf, idx, input, toks[i]);                        buf_append_char(buf, idx, ' ');fn buf_append_span(buf: *char, idx: *int, input: *char, start: int, end: int) {    
+
+                            i = i + 1;
+
+                        }                        i = i + 1;
+
+                        buf_append(buf, idx, ";\n");
+
+                        if i < len && toks[i].kind == token.TK_SEMI() {                    }    let i = start;    let i = 0;
+
+                            i = i + 1;
+
+                        }                } else {
+
+                    } else {
+
+                        if toks[i].kind == token.TK_LET() {                    // Convert -> to nothing, : to nothing for simplicity    while i < end {    while i < len_a {
+
+                            buf_append(buf, idx, "    int ");
+
+                            i = i + 1;                    if toks[i].kind == token.TK_ARROW() || toks[i].kind == token.TK_COLON() {
+
+                            // Skip 'mut' if present
+
+                            if i < len && toks[i].kind == token.TK_MUT() {                        i = i + 1;        buf[*idx] = input[i];        if input[a.span.start + i] != input[b.span.start + i] { return 0; }
+
+                                i = i + 1;
+
+                            }                    } else {
+
+                            // Variable name
+
+                            if i < len && toks[i].kind == token.TK_IDENT() {                        buf_append_token(buf, idx, input, toks[i]);        *idx = *idx + 1;        i = i + 1;
+
+                                buf_append_token(buf, idx, input, toks[i]);
+
+                                i = i + 1;                        buf_append_char(buf, idx, ' ');
+
+                            }
+
+                            // Skip type annotation if present                        i = i + 1;        i = i + 1;    }
+
+                            if i < len && toks[i].kind == token.TK_COLON() {
+
+                                i = i + 1;                    }
+
+                                // Skip type
+
+                                if i < len {                }    }    return 1;
+
+                                    i = i + 1;
+
+                                }            }
+
+                            }
+
+                            // Initializer        }}}
+
+                            if i < len && toks[i].kind == token.TK_EQ() {
+
+                                buf_append(buf, idx, " = ");        buf_append(buf, idx, ");\n\n");
+
+                                i = i + 1;
+
+                                // Copy until semicolon        return i;
+
+                                while i < len && toks[i].kind != token.TK_SEMI() {
+
+                                    buf_append_token(buf, idx, input, toks[i]);    }
+
+                                    i = i + 1;
+
+                                }    // ============================================================================// ============================================================================
+
+                            }
+
+                            buf_append(buf, idx, ";\n");    // Regular function: fn name ( params ) -> type { body }
+
+                            if i < len && toks[i].kind == token.TK_SEMI() {
+
+                                i = i + 1;    if i < len && toks[i].kind == token.TK_FN() {// TOKEN UTILITIES// BUFFER OPERATIONS
+
+                            }
+
+                        } else {        i = i + 1;
+
+                            // Other statements - just skip for now
+
+                            i = i + 1;    }// ============================================================================// ============================================================================
+
+                        }
+
+                    }    
+
+                }
+
+            }    // Return type (default to int for main, otherwise void)
+
+        }
+
+            let is_main = 0;
+
+        buf_append(buf, idx, "}\n\n");
+
+    }    if i < len && toks[i].kind == token.TK_IDENT() {fn token_is_keyword(tok: Token, kw: *char, input: *char): int {fn buf_append_str(buf: *char, idx: *int, s: *char) {
+
+    
+
+    return i;        let name_start = toks[i].span.start;
+
+}
+
+        let name_end = toks[i].span.end;    if tok.kind != token.TK_IDENT() {    let i = 0;
+
+// ============================================================================
+
+// MAIN ENTRY POINT        if name_end - name_start == 4 {
+
+// ============================================================================
+
+            if input[name_start] == 'm' && input[name_start + 1] == 'a' &&         return 0;    while s[i] != '\0' {
+
+export fn emit_c_basic_stdout(input: *char, toks: DynamicArray[Token]) {
+
+    let buf_size = 524288;               input[name_start + 2] == 'i' && input[name_start + 3] == 'n' {
+
+    let buf = malloc(buf_size);
+
+    let idx = 0;                is_main = 1;    }        buf[*idx] = s[i];
+
+    
+
+    // Generate headers            }
+
+    emit_headers(buf, &idx);
+
+            }    let i = 0;        *idx = *idx + 1;
+
+    // Process all tokens
+
+    let len = toks.length();    }
+
+    let i = 0;
+
+            while kw[i] != 0 {        i = i + 1;
+
+    while i < len {
+
+        if toks[i].kind == token.TK_FN() || toks[i].kind == token.TK_EXPORT() ||     if is_main != 0 {
+
+           toks[i].kind == token.TK_EXTERN() {
+
+            i = generate_function(buf, &idx, input, toks, i);        buf_append(buf, idx, "int ");        if input[tok.span.start + i] != kw[i] {    }
+
+        } else {
+
+            if toks[i].kind == token.TK_IMPORT() {    } else {
+
+                // Skip imports for now
+
+                i = i + 1;        buf_append(buf, idx, "void ");            return 0;}
+
+                if i < len && toks[i].kind == token.TK_IDENT() {
+
+                    i = i + 1;    }
+
+                }
+
+            } else {            }
+
+                if toks[i].kind == token.TK_STRUCT() {
+
+                    // Skip structs for now    // Function name
+
+                    i = i + 1;
+
+                    if i < len && toks[i].kind == token.TK_IDENT() {    if i < len && toks[i].kind == token.TK_IDENT() {        i = i + 1;fn buf_append_span(buf: *char, idx: *int, input: *char, start: int, end: int) {
+
+                        i = i + 1;
+
+                    }        buf_append_token(buf, idx, input, toks[i]);
+
+                    if i < len && toks[i].kind == token.TK_LBRACE() {
+
+                        i = i + 1;        i = i + 1;    }    let i = start;
+
+                        let depth = 1;
+
+                        while i < len && depth > 0 {    }
+
+                            if toks[i].kind == token.TK_LBRACE() {
+
+                                depth = depth + 1;        if tok.span.start + i != tok.span.end {    while i < end {
+
+                            }
+
+                            if toks[i].kind == token.TK_RBRACE() {    // Parameters
+
+                                depth = depth - 1;
+
+                            }    buf_append(buf, idx, "() ");        return 0;        buf[*idx] = input[i];
+
+                            i = i + 1;
+
+                        }    if i < len && toks[i].kind == token.TK_LPAREN() {
+
+                    }
+
+                } else {        i = i + 1;    }        *idx = *idx + 1;
+
+                    if toks[i].kind == token.TK_LET() {
+
+                        // Global variable - emit as static        // Skip parameters for now - just find matching )
+
+                        buf_append(buf, &idx, "static int ");
+
+                        i = i + 1;        let depth = 1;    return 1;        i = i + 1;
+
+                        // Skip mut
+
+                        if i < len && toks[i].kind == token.TK_MUT() {        while i < len && depth > 0 {
+
+                            i = i + 1;
+
+                        }            if toks[i].kind == token.TK_LPAREN() {}    }
+
+                        // Name
+
+                        if i < len && toks[i].kind == token.TK_IDENT() {                depth = depth + 1;
+
+                            buf_append_token(buf, &idx, input, toks[i]);
+
+                            i = i + 1;            }}
+
+                        }
+
+                        // Skip type            if toks[i].kind == token.TK_RPAREN() {
+
+                        if i < len && toks[i].kind == token.TK_COLON() {
+
+                            i = i + 1;                depth = depth - 1;// ============================================================================
+
+                            if i < len {
+
+                                i = i + 1;            }
+
+                            }
+
+                        }            i = i + 1;// ESCAPE SEQUENCE HANDLINGfn buf_append_char(buf: *char, idx: *int, ch: char) {
+
+                        // Initializer
+
+                        if i < len && toks[i].kind == token.TK_EQ() {        }
+
+                            buf_append(buf, &idx, " = ");
+
+                            i = i + 1;    }// ============================================================================    buf[*idx] = ch;
+
+                            while i < len && toks[i].kind != token.TK_SEMI() {
+
+                                buf_append_token(buf, &idx, input, toks[i]);    
+
+                                i = i + 1;
+
+                            }    // Skip return type annotation if present    *idx = *idx + 1;
+
+                        }
+
+                        buf_append(buf, &idx, ";\n");    if i < len && toks[i].kind == token.TK_ARROW() {
+
+                        if i < len && toks[i].kind == token.TK_SEMI() {
+
+                            i = i + 1;        i = i + 1;fn emit_escape_char(buf: *char, idx: *int, ch: char) {}
+
+                        }
+
+                    } else {        // Skip the type
+
+                        // Unknown - skip
+
+                        i = i + 1;        if i < len {    if ch == 'n' {
+
+                    }
+
+                }            i = i + 1;
+
+            }
+
+        }        }        buf_append_str(buf, idx, "putchar(10);");fn buf_append_int(buf: *char, idx: *int, num: int) {
+
+    }
+
+        }
+
+    // Null terminate and output
+
+    buf[idx] = 0;        } else {    let temp = malloc(32);
+
+    printf("%s", buf);
+
+    free(buf);    // Function body
+
+}
+
+    if i < len && toks[i].kind == token.TK_LBRACE() {        if ch == 't' {    sprintf(temp, "%d", num);
+
+export fn emit_c_to_file(input: *char, toks: DynamicArray[Token], output_file: *char) {
+
+    // For now, just output to stdout        buf_append(buf, idx, "{\n");
+
+    emit_c_basic_stdout(input, toks);
+
+}        i = i + 1;            buf_append_str(buf, idx, "putchar(9);");    buf_append_str(buf, idx, temp);
+
+
+        
+
+        // Generate body        } else {    free(temp);
+
+        let depth = 1;
+
+        while i < len && depth > 0 {            if ch == 'r' {}
+
+            if toks[i].kind == token.TK_LBRACE() {
+
+                buf_append(buf, idx, "    {\n");                buf_append_str(buf, idx, "putchar(13);");
+
+                depth = depth + 1;
+
+                i = i + 1;            } else {// ============================================================================
+
+            } else {
+
+                if toks[i].kind == token.TK_RBRACE() {                if ch == '\\' {// MAIN BODY DETECTION
+
+                    depth = depth - 1;
+
+                    if depth > 0 {                    buf_append_str(buf, idx, "putchar(92);");// ============================================================================
+
+                        buf_append(buf, idx, "    }\n");
+
+                    }                } else {
+
+                    i = i + 1;
+
+                } else {                    if ch == 39 {fn find_main_bounds(input: *char, toks: DynamicArray[Token], 
+
+                    if toks[i].kind == token.TK_RETURN() {
+
+                        buf_append(buf, idx, "    return ");                        buf_append_str(buf, idx, "putchar(39);");                    body_start: *int, body_end: *int) -> int {
+
+                        i = i + 1;
+
+                        // Copy until semicolon                    } else {    let n = toks.length();
+
+                        while i < len && toks[i].kind != token.TK_SEMI() {
+
+                            buf_append_token(buf, idx, input, toks[i]);                        if ch == '"' {    let i = 0;
+
+                            i = i + 1;
+
+                        }                            buf_append_str(buf, idx, "putchar(34);");    
+
+                        buf_append(buf, idx, ";\n");
+
+                        if i < len && toks[i].kind == token.TK_SEMI() {                        } else {    while i < n {
+
+                            i = i + 1;
+
+                        }                            buf_append_str(buf, idx, "putchar(");        // Look for 'fn main'
+
+                    } else {
+
+                        if toks[i].kind == token.TK_LET() {                            buf_append_int(buf, idx, ch);        if token_is_keyword(toks[i], "fn", input) {
+
+                            buf_append(buf, idx, "    int ");
+
+                            i = i + 1;                            buf_append_str(buf, idx, ");");            if i + 1 < n && toks[i + 1].kind == token.TK_IDENT() {
+
+                            // Skip 'mut' if present
+
+                            if i < len && toks[i].kind == token.TK_MUT() {                        }                if lex_equals(input, toks[i + 1].span.start, toks[i + 1].span.end, "main") {
+
+                                i = i + 1;
+
+                            }                    }                    // Found 'fn main', now find the body braces
+
+                            // Variable name
+
+                            if i < len && toks[i].kind == token.TK_IDENT() {                }                    let j = i + 2;
+
+                                buf_append_token(buf, idx, input, toks[i]);
+
+                                i = i + 1;            }                    
+
+                            }
+
+                            // Skip type annotation if present        }                    // Skip parameter list and return type
+
+                            if i < len && toks[i].kind == token.TK_COLON() {
+
+                                i = i + 1;    }                    while j < n && toks[j].kind != token.TK_LBRACE() {
+
+                                // Skip type
+
+                                if i < len {}                        j = j + 1;
+
+                                    i = i + 1;
+
+                                }                    }
+
+                            }
+
+                            // Initializerfn emit_string_literal(buf: *char, idx: *int, input: *char, start: int, end: int) {                    
+
+                            if i < len && toks[i].kind == token.TK_EQ() {
+
+                                buf_append(buf, idx, " = ");    let i = start + 1;                    if j < n && toks[j].kind == token.TK_LBRACE() {
+
+                                i = i + 1;
+
+                                // Copy until semicolon                            // Match braces to find body end
+
+                                while i < len && toks[i].kind != token.TK_SEMI() {
+
+                                    buf_append_token(buf, idx, input, toks[i]);    while i < end - 1 {                        let depth = 0;
+
+                                    i = i + 1;
+
+                                }        let ch = input[i];                        let k = j;
+
+                            }
+
+                            buf_append(buf, idx, ";\n");                                
+
+                            if i < len && toks[i].kind == token.TK_SEMI() {
+
+                                i = i + 1;        if ch == '\\' {                        while k < n {
+
+                            }
+
+                        } else {            let next = input[i + 1];                            if toks[k].kind == token.TK_LBRACE() {
+
+                            // Other statements - just skip for now
+
+                            i = i + 1;            emit_escape_char(buf, idx, next);                                depth = depth + 1;
+
+                        }
+
+                    }            i = i + 2;                            } else {
+
+                }
+
+            }        } else {                                if toks[k].kind == token.TK_RBRACE() {
+
+        }
+
+                    buf_append_str(buf, idx, "putchar('");                                    depth = depth - 1;
+
+        buf_append(buf, idx, "}\n\n");
+
+    }            buf_append_char(buf, idx, ch);                                    if depth == 0 {
+
+    
+
+    return i;            buf_append_str(buf, idx, "');");                                        *body_start = j + 1;
+
+}
+
+            i = i + 1;                                        *body_end = k;
+
+// ============================================================================
+
+// MAIN ENTRY POINT        }                                        return 1;
+
+// ============================================================================
+
+    }                                    }
+
+export fn emit_c_basic_stdout(input: *char, toks: DynamicArray[Token]) {
+
+    let buf_size = 524288;  // 512KB buffer}                                }
+
+    let buf = malloc(buf_size);
+
+    let idx = 0;                            }
+
+    
+
+    // Generate headersfn emit_char_literal(buf: *char, idx: *int, input: *char, start: int, end: int) {                            k = k + 1;
+
+    emit_headers(buf, &idx);
+
+        let i = start + 1;                        }
+
+    // Process all tokens
+
+    let len = toks.length();    let ch = input[i];                    }
+
+    let i = 0;
+
+                        }
+
+    while i < len {
+
+        if toks[i].kind == token.TK_FN() || toks[i].kind == token.TK_EXPORT() ||     if ch == '\\' {            }
+
+           toks[i].kind == token.TK_EXTERN() {
+
+            i = generate_function(buf, &idx, input, toks, i);        let next = input[i + 1];        }
+
+        } else {
+
+            if toks[i].kind == token.TK_IMPORT() {        if next == 'n' {        i = i + 1;
+
+                // Skip imports for now
+
+                i = i + 1;            buf_append_str(buf, idx, "10");    }
+
+                if i < len && toks[i].kind == token.TK_IDENT() {
+
+                    i = i + 1;        } else {    return 0;
+
+                }
+
+            } else {            if next == 't' {}
+
+                if toks[i].kind == token.TK_STRUCT() {
+
+                    // Skip structs for now                buf_append_str(buf, idx, "9");
+
+                    i = i + 1;
+
+                    if i < len && toks[i].kind == token.TK_IDENT() {            } else {// ============================================================================
+
+                        i = i + 1;
+
+                    }                if next == 'r' {// VARIABLE DECLARATION HANDLING
+
+                    if i < len && toks[i].kind == token.TK_LBRACE() {
+
+                        i = i + 1;                    buf_append_str(buf, idx, "13");// ============================================================================
+
+                        let depth = 1;
+
+                        while i < len && depth > 0 {                } else {
+
+                            if toks[i].kind == token.TK_LBRACE() {
+
+                                depth = depth + 1;                    if next == '\\' {fn emit_variable_declarations(buf: *char, idx: *int, input: *char, 
+
+                            }
+
+                            if toks[i].kind == token.TK_RBRACE() {                        buf_append_str(buf, idx, "92");                              toks: DynamicArray[Token], 
+
+                                depth = depth - 1;
+
+                            }                    } else {                              body_start: int, body_end: int) {
+
+                            i = i + 1;
+
+                        }                        if next == 39 {    let i = body_start;
+
+                    }
+
+                } else {                            buf_append_str(buf, idx, "39");    
+
+                    if toks[i].kind == token.TK_LET() {
+
+                        // Global variable - emit as static                        } else {    while i < body_end {
+
+                        buf_append(buf, &idx, "static int ");
+
+                        i = i + 1;                            if next == '"' {        if token_is_keyword(toks[i], "let", input) {
+
+                        // Skip mut
+
+                        if i < len && toks[i].kind == token.TK_MUT() {                                buf_append_str(buf, idx, "34");            let mut_pos = i + 1;
+
+                            i = i + 1;
+
+                        }                            } else {            let name_pos = mut_pos;
+
+                        // Name
+
+                        if i < len && toks[i].kind == token.TK_IDENT() {                                buf_append_int(buf, idx, next);            
+
+                            buf_append_token(buf, &idx, input, toks[i]);
+
+                            i = i + 1;                            }            // Check for 'mut' keyword
+
+                        }
+
+                        // Skip type                        }            if mut_pos < body_end && token_is_keyword(toks[mut_pos], "mut", input) {
+
+                        if i < len && toks[i].kind == token.TK_COLON() {
+
+                            i = i + 1;                    }                name_pos = mut_pos + 1
+
+                            if i < len {
+
+                                i = i + 1;                }            }
+
+                            }
+
+                        }            }            
+
+                        // Initializer
+
+                        if i < len && toks[i].kind == token.TK_EQ() {        }            if name_pos < body_end && toks[name_pos].kind == token.TK_IDENT() {
+
+                            buf_append(buf, &idx, " = ");
+
+                            i = i + 1;    } else {                // Look for '=' and type inference
+
+                            while i < len && toks[i].kind != token.TK_SEMI() {
+
+                                buf_append_token(buf, &idx, input, toks[i]);        if ch == 39 {                let j = name_pos + 1
+
+                                i = i + 1;
+
+                            }            buf_append_str(buf, idx, "39");                
+
+                        }
+
+                        buf_append(buf, &idx, ";\n");        } else {                // Skip type annotation if present (: int)
+
+                        if i < len && toks[i].kind == token.TK_SEMI() {
+
+                            i = i + 1;            buf_append_int(buf, idx, ch);                if j < body_end && toks[j].kind == token.TK_COLON() {
+
+                        }
+
+                    } else {        }                    j = j + 2  // skip ': type'
+
+                        // Unknown - skip
+
+                        i = i + 1;    }                }
+
+                    }
+
+                }}                
+
+            }
+
+        }                // Find '='
+
+    }
+
+    // ============================================================================                while j < body_end && toks[j].kind != token.TK_EQUAL() {
+
+    // Null terminate and output
+
+    buf[idx] = 0;// MAIN CODE GENERATION FUNCTION - emit_c_basic_stdout                    j = j + 1;
+
+    printf("%s", buf);
+
+    free(buf);// ============================================================================                }
+
+}
+
+                
+
+export fn emit_c_to_file(input: *char, toks: DynamicArray[Token], output_file: *char) {
+
+    // For now, just output to stdoutexport fn emit_c_basic_stdout(input: *char, toks: DynamicArray[Token]) {                if j < body_end && toks[j].kind == token.TK_EQUAL() {
+
+    emit_c_basic_stdout(input, toks);
+
+}    printf("#include <stdio.h>\n");                    let value_pos = j + 1
+
+
+    printf("#include <stdlib.h>\n\n");                    
+
+                        if value_pos < body_end && toks[value_pos].kind == token.TK_INT() {
+
+    let i = 0;                        // Emit: int name = value;
+
+    let len = toks.length();                        buf_append_str(buf, idx, "int ");
+
+                            buf_append_span(buf, idx, input, 
+
+    while i < len {                                      toks[name_pos].span.start,
+
+        if token_is_keyword(toks[i], "fn", input) {                                      toks[name_pos].span.end);
+
+            let j = i + 1;                        buf_append_str(buf, idx, " = ");
+
+            if j < len && toks[j].kind == token.TK_IDENT() {                        buf_append_span(buf, idx, input,
+
+                let name_start = toks[j].span.start;                                      toks[value_pos].span.start,
+
+                let name_end = toks[j].span.end;                                      toks[value_pos].span.end);
+
+                                        buf_append_str(buf, idx, ";");;
+
+                let is_main = 1;                    }
+
+                if name_end - name_start != 4 {                }
+
+                    is_main = 0;            }
+
+                } else {        }
+
+                    if input[name_start] != 'm' || input[name_start + 1] != 'a' ||        i = i + 1;
+
+                       input[name_start + 2] != 'i' || input[name_start + 3] != 'n' {    }
+
+                        is_main = 0;}
+
+                    }
+
+                }// ============================================================================
+
+                // PRINT/PRINTLN HANDLING
+
+                if is_main != 0 {// ============================================================================
+
+                    printf("int main() {\n");
+
+                    fn emit_escape_char(buf: *char, idx: *int, ch: char) {
+
+                    let body_start = 0;    if ch == 'n' {
+
+                    let body_end = 0;        buf_append_str(buf, idx, "putchar(10);");
+
+                        } else {
+
+                    let k = j + 1;        if ch == 't' {
+
+                    if k < len && toks[k].kind == token.TK_LPAREN() {            buf_append_str(buf, idx, "putchar(9);");
+
+                        let paren_depth = 1;        } else {
+
+                        k = k + 1;            if ch == 'r' {
+
+                        while k < len && paren_depth > 0 {                buf_append_str(buf, idx, "putchar(13);");
+
+                            if toks[k].kind == token.TK_LPAREN() {            } else {
+
+                                paren_depth = paren_depth + 1;                if ch == '\\' {
+
+                            }                    buf_append_str(buf, idx, "putchar(92);");
+
+                            if toks[k].kind == token.TK_RPAREN() {                } else {
+
+                                paren_depth = paren_depth - 1;                    if ch == '\'' {
+
+                            }                        buf_append_str(buf, idx, "putchar(39);");
+
+                            k = k + 1;                    } else {
+
+                        }                        if ch == '"' {
+
+                    }                            buf_append_str(buf, idx, "putchar(34);");
+
+                                            } else {
+
+                    while k < len && toks[k].kind != token.TK_LBRACE() {                            buf_append_str(buf, idx, "putchar(");
+
+                        k = k + 1;                            buf_append_int(buf, idx, ch);
+
+                    }                            buf_append_str(buf, idx, ");");
+
+                                            }
+
+                    if k < len {                    }
+
+                        body_start = k + 1;                }
+
+                        let brace_depth = 1;            }
+
+                        k = k + 1;        }
+
+                            }
+
+                        while k < len && brace_depth > 0 {}
+
+                            if toks[k].kind == token.TK_LBRACE() {
+
+                                brace_depth = brace_depth + 1;fn emit_string_literal(buf: *char, idx: *int, input: *char, start: int, end: int) {
+
+                            }    let i = start + 1;  // Skip opening quote
+
+                            if toks[k].kind == token.TK_RBRACE() {    
+
+                                brace_depth = brace_depth - 1;    while i < end - 1 {  // Skip closing quote
+
+                            }        let ch = input[i];
+
+                            if brace_depth > 0 {        
+
+                                k = k + 1;        if ch == '\\' {
+
+                            }            let next = input[i + 1];
+
+                        }            emit_escape_char(buf, idx, next)
+
+                        body_end = k;            i = i + 2
+
+                    }        } else {
+
+                                buf_append_str(buf, idx, "putchar('")
+
+                    let m = body_start;            buf_append_char(buf, idx, ch)
+
+                    while m < body_end {            buf_append_str(buf, idx, "');")
+
+                        if token_is_keyword(toks[m], "let", input) {            i = i + 1
+
+                            let mut_pos = m + 1;        }
+
+                            let name_pos = mut_pos;    }
+
+                            }
+
+                            if mut_pos < body_end && token_is_keyword(toks[mut_pos], "mut", input) {
+
+                                name_pos = mut_pos + 1;fn emit_char_literal(buf: *char, idx: *int, input: *char, start: int) {
+
+                            }    if input[start + 1] == '\\' {
+
+                                    emit_escape_char(buf, idx, input[start + 2])
+
+                            if name_pos < body_end && toks[name_pos].kind == token.TK_IDENT() {    } else {
+
+                                let eq_pos = name_pos + 1;        buf_append_str(buf, idx, "putchar('")
+
+                                        buf_append_char(buf, idx, input[start + 1])
+
+                                if eq_pos < body_end && toks[eq_pos].kind == token.TK_COLON() {        buf_append_str(buf, idx, "');")
+
+                                    let type_pos = eq_pos + 1;    }
+
+                                    while type_pos < body_end && toks[type_pos].kind != token.TK_EQ() {}
+
+                                        type_pos = type_pos + 1;
+
+                                    }fn emit_expression(buf: *char, idx: *int, input: *char,
+
+                                    eq_pos = type_pos;                   toks: DynamicArray[Token], 
+
+                                }                   expr_start: int, body_end: int) {
+
+                                    buf_append_str(buf, idx, "r_putint(")
+
+                                if eq_pos < body_end && toks[eq_pos].kind == token.TK_EQ() {    
+
+                                    let value_pos = eq_pos + 1;    let i = expr_start;
+
+                                        let mut depth = 0
+
+                                    if value_pos < body_end && toks[value_pos].kind == token.TK_INT() {    let mut done = 0;
+
+                                        printf("int ");    
+
+                                            while i < body_end && done == 0 {
+
+                                        let n = toks[name_pos].span.start;        let tk = toks[i];
+
+                                        while n < toks[name_pos].span.end {        
+
+                                            printf("%c", input[n]);        if tk.kind == token.TK_RPAREN() && depth == 0 {
+
+                                            n = n + 1;            done = 1
+
+                                        }        } else {
+
+                                                    if tk.kind == token.TK_LPAREN() {
+
+                                        printf(" = ");                depth = depth + 1
+
+                                                        buf_append_char(buf, idx, '(')
+
+                                        let v = toks[value_pos].span.start;            } else { if tk.kind == token.TK_RPAREN() {
+
+                                        while v < toks[value_pos].span.end {                depth = depth - 1
+
+                                            printf("%c", input[v]);                buf_append_char(buf, idx, ')')
+
+                                            v = v + 1;            } else {
+
+                                        }                // Pass through numbers, identifiers, operators
+
+                                                        if tk.kind == token.TK_INT() || tk.kind == token.TK_IDENT() ||
+
+                                        printf(";\n");                   tk.kind == token.TK_PLUS() || tk.kind == token.TK_MINUS() ||
+
+                                    }                   tk.kind == token.TK_STAR() || tk.kind == token.TK_SLASH() {
+
+                                }                    buf_append_span(buf, idx, input, tk.span.start, tk.span.end)
+
+                            }                }
+
+                        }            }}
+
+                        m = m + 1;            i = i + 1
+
+                    }        }
+
+                        }
+
+                    let p = body_start;    
+
+                    while p < body_end {    buf_append_str(buf, idx, ");")
+
+                        let is_print = token_is_keyword(toks[p], "print", input);}
+
+                        let is_println = token_is_keyword(toks[p], "println", input);
+
+                        fn emit_print_statements(buf: *char, idx: *int, input: *char,
+
+                        if is_print != 0 || is_println != 0 {                         toks: DynamicArray[Token],
+
+                            let lparen = p + 1;                         body_start: int, body_end: int) {
+
+                            if lparen < body_end && toks[lparen].kind == token.TK_LPAREN() {    let i = body_start;
+
+                                let arg = lparen + 1;    
+
+                                    while i < body_end {
+
+                                if arg < body_end {        let is_print = 0;
+
+                                    let tok = toks[arg];        let is_println = 0
+
+                                            
+
+                                    if tok.kind == token.TK_STRING() {        if toks[i].kind == token.TK_IDENT() {
+
+                                        let s = tok.span.start + 1;            is_print = lex_equals(input, toks[i].span.start, toks[i].span.end, "print")
+
+                                        while s < tok.span.end - 1 {            is_println = lex_equals(input, toks[i].span.start, toks[i].span.end, "println")
+
+                                            let ch = input[s];        }
+
+                                            if ch == '\\' {        
+
+                                                let next = input[s + 1];        if is_print == 1 || is_println == 1 {
+
+                                                if next == 'n' {            if i + 1 < body_end && toks[i + 1].kind == token.TK_LPAREN() {
+
+                                                    printf("putchar(10);");                let arg_pos = i + 2
+
+                                                } else {                
+
+                                                    if next == 't' {                if arg_pos < body_end {
+
+                                                        printf("putchar(9);");                    let arg = toks[arg_pos]
+
+                                                    } else {                    
+
+                                                        if next == 'r' {                    if arg.kind == token.TK_STRING() {
+
+                                                            printf("putchar(13);");                        emit_string_literal(buf, idx, input, arg.span.start, arg.span.end)
+
+                                                        } else {                    } else { if arg.kind == token.TK_CHAR() {
+
+                                                            if next == '\\' {                        emit_char_literal(buf, idx, input, arg.span.start)
+
+                                                                printf("putchar(92);");                    } else { if arg.kind == token.TK_INT() {
+
+                                                            } else {                        // Check if followed by operator (expression)
+
+                                                                if next == 39 {                        let next_pos = arg_pos + 1
+
+                                                                    printf("putchar(39);");                        if next_pos < body_end {
+
+                                                                } else {                            let next_tk = toks[next_pos]
+
+                                                                    if next == '"' {                            if next_tk.kind == token.TK_PLUS() || next_tk.kind == token.TK_MINUS() ||
+
+                                                                        printf("putchar(34);");                               next_tk.kind == token.TK_STAR() || next_tk.kind == token.TK_SLASH() {
+
+                                                                    } else {                                // It's an expression
+
+                                                                        printf("putchar(%d);", next);                                emit_expression(buf, idx, input, toks, arg_pos, body_end)
+
+                                                                    }                            } else {
+
+                                                                }                                // Simple int literal
+
+                                                            }                                buf_append_str(buf, idx, "r_putint(")
+
+                                                        }                                buf_append_span(buf, idx, input, arg.span.start, arg.span.end)
+
+                                                    }                                buf_append_str(buf, idx, ");")
+
+                                                }                            }
+
+                                                s = s + 2;                        } else {
+
+                                            } else {                            buf_append_str(buf, idx, "r_putint(")
+
+                                                printf("putchar('%c');", ch);                            buf_append_span(buf, idx, input, arg.span.start, arg.span.end)
+
+                                                s = s + 1;                            buf_append_str(buf, idx, ");")
+
+                                            }                        }
+
+                                        }                    } else { if arg.kind == token.TK_IDENT() {
+
+                                    } else {                        // Check if followed by operator (expression)
+
+                                        if tok.kind == token.TK_CHAR() {                        let next_pos = arg_pos + 1
+
+                                            printf("putchar(");                        if next_pos < body_end {
+
+                                            let c = tok.span.start + 1;                            let next_tk = toks[next_pos]
+
+                                            let ch = input[c];                            if next_tk.kind == token.TK_PLUS() || next_tk.kind == token.TK_MINUS() ||
+
+                                            if ch == '\\' {                               next_tk.kind == token.TK_STAR() || next_tk.kind == token.TK_SLASH() {
+
+                                                let next = input[c + 1];                                // It's an expression
+
+                                                if next == 'n' {                                emit_expression(buf, idx, input, toks, arg_pos, body_end)
+
+                                                    printf("10");                            } else {
+
+                                                } else {                                // Simple identifier
+
+                                                    if next == 't' {                                buf_append_str(buf, idx, "r_putint(")
+
+                                                        printf("9");                                buf_append_span(buf, idx, input, arg.span.start, arg.span.end)
+
+                                                    } else {                                buf_append_str(buf, idx, ");")
+
+                                                        if next == 'r' {                            }
+
+                                                            printf("13");                        } else {
+
+                                                        } else {                            buf_append_str(buf, idx, "r_putint(")
+
+                                                            if next == '\\' {                            buf_append_span(buf, idx, input, arg.span.start, arg.span.end)
+
+                                                                printf("92");                            buf_append_str(buf, idx, ");")
+
+                                                            } else {                        }
+
+                                                                if next == 39 {                    } else {
+
+                                                                    printf("39");                        // Expression (e.g., starts with parenthesis or other)
+
+                                                                } else {                        emit_expression(buf, idx, input, toks, arg_pos, body_end)
+
+                                                                    if next == '"' {                    }}}}
+
+                                                                        printf("34");                }
+
+                                                                    } else {                
+
+                                                                        printf("%d", next);                if is_println == 1 {
+
+                                                                    }                    buf_append_str(buf, idx, "putchar(10);")
+
+                                                                }                }
+
+                                                            }            }
+
+                                                        }        }
+
+                                                    }        i = i + 1
+
+                                                }    }
+
+                                            } else {}
+
+                                                if ch == 39 {
+
+                                                    printf("39");// ============================================================================
+
+                                                } else {// MAIN CODE GENERATION
+
+                                                    printf("%d", ch);// ============================================================================
+
+                                                }
+
+                                            }export fn emit_c_to_file(out_path: *char, input: *char, 
+
+                                            printf(");");                         toks: DynamicArray[Token]) -> int {
+
+                                        } else {    let mut body_start = 0;
+
+                                            if tok.kind == token.TK_INT() {    let mut body_end = 0
+
+                                                printf("printf(\"%%d\", ");    let buf = malloc(524288)  // 512KB buffer on heap;
+
+                                                let d = tok.span.start;    let mut idx = 0
+
+                                                while d < tok.span.end {    
+
+                                                    printf("%c", input[d]);    // Check if we have a main function
+
+                                                    d = d + 1;    if find_main_bounds(input, toks, &body_start, &body_end) == 0 {
+
+                                                }        buf_append_str(buf, &idx, "int main(){ return 0; }")
+
+                                                printf(");");        buf[idx] = '\0'
+
+                                            } else {        let result = fs.write_all(out_path, buf);
+
+                                                if tok.kind == token.TK_IDENT() {        free(buf)
+
+                                                    printf("printf(\"%%d\", ");        return result;
+
+                                                    let id = tok.span.start;    }
+
+                                                    while id < tok.span.end {    
+
+                                                        printf("%c", input[id]);    // Emit C preamble
+
+                                                        id = id + 1;    buf_append_str(buf, &idx, "extern int putchar(int);")
+
+                                                    }    
+
+                                                    printf(");");    // Emit helper function for printing integers
+
+                                                }    buf_append_str(buf, &idx, 
+
+                                            }        "static void r_putint(int v){")
+
+                                        }    buf_append_str(buf, &idx,
+
+                                    }        "if(v==0){putchar(48);return;}")
+
+                                }    buf_append_str(buf, &idx,
+
+                                        "if(v<0){putchar(45);v=-v;}")
+
+                                if is_println != 0 {    buf_append_str(buf, &idx,
+
+                                    printf("putchar(10);");        "int a[16];int n=0;")
+
+                                }    buf_append_str(buf, &idx,
+
+                            }        "while(v){a[n++]=v%10;v/=10;}")
+
+                        }    buf_append_str(buf, &idx,
+
+                        p = p + 1;        "while(n){n--;putchar(48+a[n]);}")
+
+                    }    buf_append_str(buf, &idx, "}")
+
+                        
+
+                    printf("return 0;\n");    // Start main function
+
+                    printf("}\n");    buf_append_str(buf, &idx, "int main(){")
+
+                }    
+
+            }    // Use the statement emitter for the entire main body
+
+        }    emit_statements(buf, &idx, input, toks, body_start, body_end, body_end)
+
+        i = i + 1;    
+
+    }    // End main function
+
+}    buf_append_str(buf, &idx, "return 0;}")
+
+    
+
+// ============================================================================    // Null terminate and write
+
+// FILE OUTPUT FUNCTION - emit_c_to_file    buf[idx] = '\0'
+
+// ============================================================================    let result = fs.write_all(out_path, buf);
+
+    free(buf)
+
+export fn emit_c_to_file(input: *char, toks: DynamicArray[Token], output_file: *char) {    return result;
+
+    let buf = malloc(524288);}
+
+    let idx = 0;
+
+    // Simpler stdout version for debugging
+
+    buf_append_str(buf, &idx, "#include <stdio.h>\n");export fn emit_c_basic_stdout(input: *char, toks: DynamicArray[Token]) {
+
+    buf_append_str(buf, &idx, "#include <stdlib.h>\n\n");    let mut body_start = 0;
+
+    buf_append_str(buf, &idx, "// Generated stub - full implementation coming soon\n");    let mut body_end = 0
+
+    buf_append_str(buf, &idx, "int main() { return 0; }\n");    
+
+        if find_main_bounds(input, toks, &body_start, &body_end) == 0 {
+
+    buf[idx] = 0;        printf("int main(){ return 0; }")
+
+    printf("%s", buf);        return
+
+    free(buf);    }
+
+}    
+
+    printf("extern int putchar(int);")
+    printf("static void r_putint(int v){if(v==0){putchar(48);return;}if(v<0){putchar(45);v=-v;}int a[16];int n=0;while(v){a[n++]=v%%10;v/=10;}while(n){n--;putchar(48+a[n]);}}")
+    printf("int main(){")
+    
+    // Use the same logic but with printf - use heap buffer
+    let buf = malloc(524288);
+    let mut idx = 0
+    
+    emit_variable_declarations(buf, &idx, input, toks, body_start, body_end)
+    emit_print_statements(buf, &idx, input, toks, body_start, body_end)
+    
+    buf[idx] = '\0'
+    printf("%s", buf)
+    printf("return 0;}")
+    free(buf)
+}
+
+// ============================================================================
+// CONTROL FLOW - IF/ELSE
+// ============================================================================
+
+fn emit_if_statement(buf: *char, idx: *int, input: *char,
+                     toks: DynamicArray[Token], 
+                     if_idx: int, body_end: int) -> int {
+    // Emit: if (condition) { ... } else { ... }
+    buf_append_str(buf, idx, "if(")
+    
+    let i = if_idx + 1;
+    
+    // Find the condition (between 'if' and '{')
+    let mut paren_depth = 0;
+    let mut found_lparen = 0
+    
+    while i < body_end && toks[i].kind != token.TK_LBRACE() {
+        let tk = toks[i];
+        
+        if tk.kind == token.TK_LPAREN() {
+            paren_depth = paren_depth + 1
+            found_lparen = 1
+            if paren_depth > 1 { buf_append_char(buf, idx, '(') }
+        } else { if tk.kind == token.TK_RPAREN() {
+            paren_depth = paren_depth - 1
+            if paren_depth > 0 { buf_append_char(buf, idx, ')') }
+        } else {
+            // Emit condition tokens
+            buf_append_span(buf, idx, input, tk.span.start, tk.span.end)
+        }}
+        i = i + 1
+    }
+    
+    buf_append_str(buf, idx, "){")
+    
+    // Find the if body (between first '{' and matching '}')
+    let mut brace_depth = 0;
+    let body_start = i
+    
+    while i < body_end {
+        if toks[i].kind == token.TK_LBRACE() {
+            brace_depth = brace_depth + 1
+        } else { if toks[i].kind == token.TK_RBRACE() {
+            brace_depth = brace_depth - 1
+            if brace_depth == 0 {
+                // Recursively emit body contents
+                let next = emit_statements(buf, idx, input, toks, body_start + 1, i, body_end)
+                buf_append_str(buf, idx, "}")
+                
+                // Check for 'else'
+                let else_pos = i + 1
+                if else_pos < body_end && token_is_keyword(toks[else_pos], "else", input) {
+                    buf_append_str(buf, idx, "else{")
+                    let else_body = else_pos + 1
+                    
+                    // Skip to else body '{'
+                    while else_body < body_end && toks[else_body].kind != token.TK_LBRACE() {
+                        else_body = else_body + 1
+                    }
+                    
+                    // Find matching '}'
+                    let mut else_depth = 0
+                    let else_start = else_body
+                    while else_body < body_end {
+                        if toks[else_body].kind == token.TK_LBRACE() {
+                            else_depth = else_depth + 1
+                        } else { if toks[else_body].kind == token.TK_RBRACE() {
+                            else_depth = else_depth - 1
+                            if else_depth == 0 {
+                                emit_statements(buf, idx, input, toks, else_start + 1, else_body, body_end)
+                                buf_append_str(buf, idx, "}")
+                                return else_body + 1
+                            }
+                        }}
+                        else_body = else_body + 1
+                    }
+                }
+                return i + 1;
+            }
+        }}
+        i = i + 1
+    }
+    return i;
+}
+
+// ============================================================================
+// CONTROL FLOW - WHILE LOOPS
+// ============================================================================
+
+fn emit_while_loop(buf: *char, idx: *int, input: *char,
+                   toks: DynamicArray[Token],
+                   while_idx: int, body_end: int) -> int {
+    buf_append_str(buf, idx, "while(")
+    
+    let i = while_idx + 1;
+    
+    // Emit condition
+    let mut paren_depth = 0;
+    while i < body_end && toks[i].kind != token.TK_LBRACE() {
+        let tk = toks[i];
+        
+        if tk.kind == token.TK_LPAREN() {
+            paren_depth = paren_depth + 1
+            if paren_depth > 1 { buf_append_char(buf, idx, '(') }
+        } else { if tk.kind == token.TK_RPAREN() {
+            paren_depth = paren_depth - 1
+            if paren_depth > 0 { buf_append_char(buf, idx, ')') }
+        } else {
+            buf_append_span(buf, idx, input, tk.span.start, tk.span.end)
+        }}
+        i = i + 1
+    }
+    
+    buf_append_str(buf, idx, "){")
+    
+    // Emit body
+    let mut brace_depth = 0;
+    let body_start = i
+    
+    while i < body_end {
+        if toks[i].kind == token.TK_LBRACE() {
+            brace_depth = brace_depth + 1
+        } else { if toks[i].kind == token.TK_RBRACE() {
+            brace_depth = brace_depth - 1
+            if brace_depth == 0 {
+                emit_statements(buf, idx, input, toks, body_start + 1, i, body_end)
+                buf_append_str(buf, idx, "}")
+                return i + 1;
+            }
+        }}
+        i = i + 1
+    }
+    return i;
+}
+
+// ============================================================================
+// CONTROL FLOW - FOR LOOPS
+// ============================================================================
+
+fn emit_for_loop(buf: *char, idx: *int, input: *char,
+                 toks: DynamicArray[Token],
+                 for_idx: int, body_end: int) -> int {
+    // Rapter: for i : 0..10 { }
+    // C:      for(int i = 0; i < 10; i++) { }
+    
+    let i = for_idx + 1;
+    
+    // Get loop variable name
+    if i >= body_end || toks[i].kind != token.TK_IDENT() {
+        return for_idx + 1  // Skip malformed for loop;
+    }
+    
+    let var_start = toks[i].span.start;
+    let var_end = toks[i].span.end
+    i = i + 1
+    
+    // Skip ':' token
+    if i >= body_end || toks[i].kind != token.TK_COLON() {
+        return for_idx + 1;
+    }
+    i = i + 1
+    
+    // Get start value
+    let range_start_idx = i;
+    if i >= body_end || toks[i].kind != token.TK_INT() {
+        return for_idx + 1;
+    }
+    i = i + 1
+    
+    // Skip '..'
+    if i + 1 >= body_end || toks[i].kind != token.TK_DOT() || toks[i + 1].kind != token.TK_DOT() {
+        return for_idx + 1;
+    }
+    i = i + 2
+    
+    // Get end value
+    let range_end_idx = i;
+    if i >= body_end || toks[i].kind != token.TK_INT() {
+        return for_idx + 1;
+    }
+    i = i + 1
+    
+    // Emit C for loop
+    buf_append_str(buf, idx, "for(int ")
+    buf_append_span(buf, idx, input, var_start, var_end)
+    buf_append_str(buf, idx, "=")
+    buf_append_span(buf, idx, input, toks[range_start_idx].span.start, toks[range_start_idx].span.end)
+    buf_append_str(buf, idx, ";")
+    buf_append_span(buf, idx, input, var_start, var_end)
+    buf_append_str(buf, idx, "<")
+    buf_append_span(buf, idx, input, toks[range_end_idx].span.start, toks[range_end_idx].span.end)
+    buf_append_str(buf, idx, ";")
+    buf_append_span(buf, idx, input, var_start, var_end)
+    buf_append_str(buf, idx, "++){")
+    
+    // Find and emit body
+    while i < body_end && toks[i].kind != token.TK_LBRACE() {
+        i = i + 1
+    }
+    
+    let mut brace_depth = 0;
+    let body_start = i
+    
+    while i < body_end {
+        if toks[i].kind == token.TK_LBRACE() {
+            brace_depth = brace_depth + 1
+        } else { if toks[i].kind == token.TK_RBRACE() {
+            brace_depth = brace_depth - 1
+            if brace_depth == 0 {
+                emit_statements(buf, idx, input, toks, body_start + 1, i, body_end)
+                buf_append_str(buf, idx, "}")
+                return i + 1;
+            }
+        }}
+        i = i + 1
+    }
+    return i;
+}
+
+// ============================================================================
+// RETURN STATEMENTS
+// ============================================================================
+
+fn emit_return_statement(buf: *char, idx: *int, input: *char,
+                         toks: DynamicArray[Token],
+                         return_idx: int, body_end: int) -> int {
+    buf_append_str(buf, idx, "return ")
+    
+    let i = return_idx + 1;
+    
+    // Emit everything until ';' or end of statement
+    while i < body_end && toks[i].kind != token.TK_SEMI() {
+        let tk = toks[i];
+        
+        if tk.kind == token.TK_INT() || tk.kind == token.TK_IDENT() ||
+           tk.kind == token.TK_PLUS() || tk.kind == token.TK_MINUS() ||
+           tk.kind == token.TK_STAR() || tk.kind == token.TK_SLASH() ||
+           tk.kind == token.TK_LPAREN() || tk.kind == token.TK_RPAREN() {
+            buf_append_span(buf, idx, input, tk.span.start, tk.span.end)
+        }
+        i = i + 1
+    }
+    
+    buf_append_str(buf, idx, ";")
+    return i + 1;
+}
+
+// ============================================================================
+// ASSIGNMENT STATEMENTS
+// ============================================================================
+
+fn emit_assignment(buf: *char, idx: *int, input: *char,
+                   toks: DynamicArray[Token],
+                   ident_idx: int, body_end: int) -> int {
+    // name = expr;
+    buf_append_span(buf, idx, input, toks[ident_idx].span.start, toks[ident_idx].span.end)
+    buf_append_str(buf, idx, "=")
+    
+    let i = ident_idx + 2  // Skip name and '=';
+    
+    // Emit expression until ';'
+    while i < body_end && toks[i].kind != token.TK_SEMI() {
+        let tk = toks[i];
+        buf_append_span(buf, idx, input, tk.span.start, tk.span.end)
+        i = i + 1
+    }
+    
+    buf_append_str(buf, idx, ";")
+    return i + 1;
+}
+
+// ============================================================================
+// STATEMENT DISPATCHER
+// ============================================================================
+
+fn emit_statements(buf: *char, idx: *int, input: *char,
+                   toks: DynamicArray[Token],
+                   start: int, end: int, body_end: int) -> int {
+    let i = start;
+    
+    while i < end {
+        let tk = toks[i];
+        
+        // Variable declaration
+        if token_is_keyword(tk, "let", input) {
+            let next = i + 1;
+            if next < end {
+                emit_variable_declarations(buf, idx, input, toks, i, i + 10)
+                // Skip to semicolon
+                while i < end && toks[i].kind != token.TK_SEMI() {
+                    i = i + 1
+                }
+                i = i + 1
+            }
+        } else { if token_is_keyword(tk, "if", input) {
+            i = emit_if_statement(buf, idx, input, toks, i, body_end)
+        } else { if token_is_keyword(tk, "while", input) {
+            i = emit_while_loop(buf, idx, input, toks, i, body_end)
+        } else { if token_is_keyword(tk, "for", input) {
+            i = emit_for_loop(buf, idx, input, toks, i, body_end)
+        } else { if token_is_keyword(tk, "return", input) {
+            i = emit_return_statement(buf, idx, input, toks, i, body_end)
+        } else { if tk.kind == token.TK_IDENT() {
+            // Check for print/println
+            let is_print = lex_equals(input, tk.span.start, tk.span.end, "print");
+            let is_println = lex_equals(input, tk.span.start, tk.span.end, "println")
+            
+            if is_print == 1 || is_println == 1 {
+                emit_print_statements(buf, idx, input, toks, i, i + 20)
+                // Skip to closing paren and semicolon
+                while i < end && toks[i].kind != token.TK_SEMI() {
+                    i = i + 1
+                }
+                i = i + 1
+            } else {
+                // Check for assignment
+                if i + 1 < end && toks[i + 1].kind == token.TK_EQUAL() {
+                    i = emit_assignment(buf, idx, input, toks, i, body_end)
+                } else {
+                    i = i + 1
+                }
+            }
+        } else {
+            i = i + 1
+        }}}}}}}
+    }
+    return i;
+}
+
+// ============================================================================
+// FUNCTION DEFINITIONS
+// ============================================================================
+
+fn emit_function_def(buf: *char, idx: *int, input: *char,
+                     toks: DynamicArray[Token],
+                     fn_idx: int, body_end: int) -> int {
+    // fn name(param: type, ...) -> return_type { ... }
+    let i = fn_idx + 1;
+    
+    // Get function name
+    if i >= body_end || toks[i].kind != token.TK_IDENT() {
+        return fn_idx + 1;
+    }
+    
+    let fn_name_start = toks[i].span.start;
+    let fn_name_end = toks[i].span.end
+    i = i + 1
+    
+    // Skip '('
+    if i >= body_end || toks[i].kind != token.TK_LPAREN() {
+        return fn_idx + 1;
+    }
+    i = i + 1
+    
+    // Collect parameters
+    let mut params_start = i;
+    while i < body_end && toks[i].kind != token.TK_RPAREN() {
+        i = i + 1
+    }
+    let params_end = i;
+    i = i + 1  // Skip ')'
+    
+    // Get return type
+    let mut ret_type_start = 0;
+    let mut ret_type_end = 0
+    
+    if i < body_end && toks[i].kind == token.TK_ARROW() {
+        i = i + 1
+        if i < body_end && toks[i].kind == token.TK_IDENT() {
+            ret_type_start = toks[i].span.start
+            ret_type_end = toks[i].span.end
+            i = i + 1
+        }
+    }
+    
+    // Emit return type (default to void if none)
+    if ret_type_end > ret_type_start {
+        if lex_equals(input, ret_type_start, ret_type_end, "int") {
+            buf_append_str(buf, idx, "int ")
+        } else {
+            buf_append_str(buf, idx, "void ")
+        }
+    } else {
+        buf_append_str(buf, idx, "void ")
+    }
+    
+    // Emit function name
+    buf_append_span(buf, idx, input, fn_name_start, fn_name_end)
+    buf_append_str(buf, idx, "(")
+    
+    // Emit parameters (simplified - assume int for now)
+    let p = params_start;
+    while p < params_end {
+        if toks[p].kind == token.TK_IDENT() {
+            buf_append_str(buf, idx, "int ")
+            buf_append_span(buf, idx, input, toks[p].span.start, toks[p].span.end)
+            if p + 1 < params_end {
+                buf_append_str(buf, idx, ",")
+            }
+        }
+        p = p + 1
+    }
+    
+    buf_append_str(buf, idx, "){")
+    
+    // Find and emit function body
+    while i < body_end && toks[i].kind != token.TK_LBRACE() {
+        i = i + 1
+    }
+    
+    let mut brace_depth = 0;
+    let body_start = i
+    
+    while i < body_end {
+        if toks[i].kind == token.TK_LBRACE() {
+            brace_depth = brace_depth + 1
+        } else { if toks[i].kind == token.TK_RBRACE() {
+            brace_depth = brace_depth - 1
+            if brace_depth == 0 {
+                emit_statements(buf, idx, input, toks, body_start + 1, i, body_end)
+                buf_append_str(buf, idx, "}")
+                return i + 1;
+            }
+        }}
+        i = i + 1
+    }
+    return i;
+}

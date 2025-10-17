@@ -1,0 +1,46 @@
+// Struct demonstration
+// Shows how to define and use structs in Rapter
+
+extern fn printf(format: *char, ...) -> int;
+
+struct Point {
+    x: int,
+    y: int
+}
+
+struct Rectangle {
+    top_left: Point,
+    width: int,
+    height: int
+}
+
+fn create_point(x: int, y: int) -> Point {
+    return Point { x: x, y: y };
+}
+
+fn area(rect: Rectangle) -> int {
+    return rect.width * rect.height;
+}
+
+fn print_point(p: Point) {
+    printf("Point(%d, %d)\n", p.x, p.y);
+}
+
+fn main() -> int {
+    let p1 = create_point(10, 20);
+    let p2 = Point { x: 5, y: 15 };
+    
+    printf("Points:\n");
+    print_point(p1);
+    print_point(p2);
+    
+    let rect = Rectangle {
+        top_left: p1,
+        width: 50,
+        height: 30
+    };
+    
+    printf("Rectangle area: %d\n", area(rect));
+    
+    return 0;
+}

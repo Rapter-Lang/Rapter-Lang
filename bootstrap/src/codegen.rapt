@@ -1,0 +1,236 @@
+// ============================================================================
+// CODEGEN.RAPT - Bootstrap compiler code generator
+// ============================================================================
+
+import token
+
+extern fn printf(format: *char, ...) -> int;
+extern fn strlen(s: *char) -> int;
+
+// Global output buffer (static allocation to avoid malloc/free issues)
+let mut output_buffer: [char; 524288];
+
+// Append string to buffer
+fn buf_append(buf: *char, idx: *int, s: *char) {
+    let len = strlen(s);
+    let i = 0;
+    while i < len {
+        buf[*idx] = s[i];
+        *idx = *idx + 1;
+        i = i + 1;
+    }
+}
+
+// Append character to buffer
+fn buf_append_char(buf: *char, idx: *int, c: char) {
+    buf[*idx] = c;
+    *idx = *idx + 1;
+}
+
+// Append token text from input
+fn buf_append_token(buf: *char, idx: *int, input: *char, tok: Token) {
+    let i = tok.span.start;
+    while i < tok.span.end {
+        buf[*idx] = input[i];
+        *idx = *idx + 1;
+        i = i + 1;
+    }
+}
+
+// Emit C headers
+fn emit_headers(buf: *char, idx: *int) {
+    buf_append(buf, idx, "#include <stdio.h>\n");
+    buf_append(buf, idx, "#include <stdlib.h>\n\n");
+}
+
+// Generate a simple function
+fn generate_function(buf: *char, idx: *int, input: *char, 
+                     toks: DynamicArray[Token], pos: int) -> int {
+    let i = pos;
+    let len = toks.length();
+    
+    // Skip export/extern
+    if i < len && toks[i].kind == token.TK_EXPORT() {
+        i = i + 1;
+    }
+    if i < len && toks[i].kind == token.TK_EXTERN() {
+        // Just skip extern functions
+        i = i + 1;
+        while i < len && toks[i].kind != token.TK_SEMI() {
+            i = i + 1;
+        }
+        if i < len {
+            i = i + 1;
+        }
+        return i;
+    }
+    
+    // fn keyword
+    if i < len && toks[i].kind == token.TK_FN() {
+        i = i + 1;
+    }
+    
+    // Check if main function (just assume for now)
+    let is_main = 1;
+    
+    // Return type
+    if is_main != 0 {
+        buf_append(buf, idx, "int ");
+    } else {
+        buf_append(buf, idx, "void ");
+    }
+    
+    // Function name
+    if i < len && toks[i].kind == token.TK_IDENT() {
+        buf_append_token(buf, idx, input, toks[i]);
+        i = i + 1;
+    }
+    
+    // Parameters (just use empty for now)
+    buf_append(buf, idx, "() ");
+    if i < len && toks[i].kind == token.TK_LPAREN() {
+        i = i + 1;
+        let depth = 1;
+        while i < len && depth > 0 {
+            if toks[i].kind == token.TK_LPAREN() {
+                depth = depth + 1;
+            }
+            if toks[i].kind == token.TK_RPAREN() {
+                depth = depth - 1;
+            }
+            i = i + 1;
+        }
+    }
+    
+    // Skip return type
+    if i < len && toks[i].kind == token.TK_ARROW() {
+        i = i + 1;
+        if i < len {
+            i = i + 1;
+        }
+    }
+    
+    // Body
+    if i < len && toks[i].kind == token.TK_LBRACE() {
+        buf_append(buf, idx, "{\n");
+        i = i + 1;
+        
+        let depth = 1;
+        while i < len && depth > 0 {
+            if toks[i].kind == token.TK_RBRACE() {
+                depth = depth - 1;
+                if depth > 0 {
+                    buf_append(buf, idx, "}\n");
+                }
+                i = i + 1;
+            } else {
+                if toks[i].kind == token.TK_RETURN() {
+                    buf_append(buf, idx, "    return ");
+                    i = i + 1;
+                    while i < len && toks[i].kind != token.TK_SEMI() {
+                        buf_append_token(buf, idx, input, toks[i]);
+                        i = i + 1;
+                    }
+                    buf_append(buf, idx, ";\n");
+                    if i < len {
+                        i = i + 1;
+                    }
+                } else {
+                    if toks[i].kind == token.TK_LET() {
+                        buf_append(buf, idx, "    int ");
+                        i = i + 1;
+                        if i < len && toks[i].kind == token.TK_MUT() {
+                            i = i + 1;
+                        }
+                        if i < len && toks[i].kind == token.TK_IDENT() {
+                            buf_append_token(buf, idx, input, toks[i]);
+                            i = i + 1;
+                        }
+                        if i < len && toks[i].kind == token.TK_COLON() {
+                            i = i + 1;
+                            if i < len {
+                                i = i + 1;
+                            }
+                        }
+                        if i < len && toks[i].kind == token.TK_EQ() {
+                            buf_append(buf, idx, " = ");
+                            i = i + 1;
+                            while i < len && toks[i].kind != token.TK_SEMI() {
+                                buf_append_token(buf, idx, input, toks[i]);
+                                i = i + 1;
+                            }
+                        }
+                        buf_append(buf, idx, ";\n");
+                        if i < len {
+                            i = i + 1;
+                        }
+                    } else {
+                        i = i + 1;
+                    }
+                }
+            }
+        }
+        
+        buf_append(buf, idx, "}\n\n");
+    }
+    
+    return i;
+}
+
+// Main codegen entry point
+export fn emit_c_basic_stdout(input: *char, toks: DynamicArray[Token]) {
+    // Allocate 512KB buffer - malloc will be from stdlib.h
+    let buf: *char;
+    let idx = 0;
+    
+    emit_headers(buf, &idx);
+    
+    let len = toks.length();
+    let i = 0;
+    
+    while i < len {
+        if toks[i].kind == token.TK_FN() || toks[i].kind == token.TK_EXPORT() || 
+           toks[i].kind == token.TK_EXTERN() {
+            i = generate_function(buf, &idx, input, toks, i);
+        } else {
+            if toks[i].kind == token.TK_LET() {
+                buf_append(buf, &idx, "static int ");
+                i = i + 1;
+                if i < len && toks[i].kind == token.TK_MUT() {
+                    i = i + 1;
+                }
+                if i < len && toks[i].kind == token.TK_IDENT() {
+                    buf_append_token(buf, &idx, input, toks[i]);
+                    i = i + 1;
+                }
+                if i < len && toks[i].kind == token.TK_COLON() {
+                    i = i + 1;
+                    if i < len {
+                        i = i + 1;
+                    }
+                }
+                if i < len && toks[i].kind == token.TK_EQ() {
+                    buf_append(buf, &idx, " = ");
+                    i = i + 1;
+                    while i < len && toks[i].kind != token.TK_SEMI() {
+                        buf_append_token(buf, &idx, input, toks[i]);
+                        i = i + 1;
+                    }
+                }
+                buf_append(buf, &idx, ";\n");
+                if i < len {
+                    i = i + 1;
+                }
+            } else {
+                i = i + 1;
+            }
+        }
+    }
+    
+    printf("%s", buf);
+    free(buf);
+}
+
+export fn emit_c_to_file(input: *char, toks: DynamicArray[Token], output_file: *char) {
+    emit_c_basic_stdout(input, toks);
+}

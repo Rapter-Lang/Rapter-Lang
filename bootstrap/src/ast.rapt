@@ -1,0 +1,18 @@
+// Minimal dump helpers for bootstrap stage. Avoid exporting structs/arrays.
+
+extern fn printf(format: *char, ...) -> int;
+
+// Print a single function signature: name from [name_start, name_end)
+export fn dump_fn_simple(input: *char, name_start: int, name_end: int, param_count: int) {
+	printf("fn ");
+	let k = 0; for k : 0..(name_end - name_start) { printf("%c", input[name_start + k]); }
+	printf("(");
+	// We omit actual param names for now; just print commas if needed
+	let i = 0; for i : 0..param_count { if i + 1 < param_count { printf(", "); } }
+	printf(")\n");
+}
+
+export fn dump_program_summary(count: int) {
+	printf("program: %d function(s)\n", count);
+}
+// end

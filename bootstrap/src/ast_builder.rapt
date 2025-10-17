@@ -1,0 +1,104 @@
+// ============================================================================
+// AST_BUILDER.RAPT - Simplified AST construction without nested calls
+// ============================================================================
+// Works around module-qualified function call limitations
+// ============================================================================
+
+import bootstrap.src.ast_v2 as ast
+
+extern fn printf(format: *char, ...) -> int;
+
+// Build a simple function AST: fn name() -> int { return 42; }
+export fn build_simple_function(name: *char) -> ast.Function {
+    let mut func = ast.make_function(name);
+    
+    // Set return type
+    let ret_type = ast.make_int_type();
+    func.return_type = ret_type;
+    
+    // Add a return statement
+    let ret_stmt = ast.make_return_statement(1);
+    func.body.push(ret_stmt);
+    
+    return func;
+}
+
+// Build a function with parameters: fn name(x: int, y: int) -> int { return x; }
+export fn build_function_with_params(name: *char) -> ast.Function {
+    let mut func = ast.make_function(name);
+    
+    // Create parameters
+    let x_type = ast.make_int_type();
+    let y_type = ast.make_int_type();
+    
+    let x_param = ast.make_parameter("x", x_type);
+    let y_param = ast.make_parameter("y", y_type);
+    
+    func.params.push(x_param);
+    func.params.push(y_param);
+    
+    // Set return type
+    let ret_type = ast.make_int_type();
+    func.return_type = ret_type;
+    
+    // Add return statement
+    let ret_stmt = ast.make_return_statement(1);
+    func.body.push(ret_stmt);
+    
+    return func;
+}
+
+// Build a simple struct: struct Point { x: int, y: int }
+export fn build_simple_struct(name: *char) -> ast.StructDecl {
+    let mut struct_decl = ast.make_struct(name);
+    
+    // Create fields
+    let x_type = ast.make_int_type();
+    let y_type = ast.make_int_type();
+    
+    let x_field = ast.make_struct_field("x", x_type);
+    let y_field = ast.make_struct_field("y", y_type);
+    
+    struct_decl.fields.push(x_field);
+    struct_decl.fields.push(y_field);
+    
+    return struct_decl;
+}
+
+// Build a complete program with function and struct
+export fn build_test_program() -> ast.Program {
+    let mut prog = ast.make_program();
+    
+    // Add an import
+    let imp = ast.make_import("std.io");
+    prog.imports.push(imp);
+    
+    // Add a struct
+    let point_struct = build_simple_struct("Point");
+    prog.structs.push(point_struct);
+    
+    // Add a function
+    let main_func = build_simple_function("main");
+    prog.functions.push(main_func);
+    
+    // Add an export
+    let exp = ast.make_export(0, "main");
+    prog.exports.push(exp);
+    
+    return prog;
+}
+
+// Build program with function that has parameters
+export fn build_program_with_params() -> ast.Program {
+    let mut prog = ast.make_program();
+    
+    // Add function with parameters
+    let add_func = build_function_with_params("add");
+    prog.functions.push(add_func);
+    
+    // Add export
+    let exp = ast.make_export(0, "add");
+    prog.exports.push(exp);
+    
+    return prog;
+}

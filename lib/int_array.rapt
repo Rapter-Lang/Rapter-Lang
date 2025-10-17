@@ -1,0 +1,66 @@
+// Dynamic Array library for integers
+// Bootstrap-friendly version using functions instead of methods
+
+struct IntArray {
+    data: *int,
+    len: int,
+    cap: int
+}
+
+export fn int_array_new() -> IntArray {
+    let arr: IntArray;
+    arr.data = 0 as *int;  // NULL pointer
+    arr.len = 0;
+    arr.cap = 0;
+    return arr;
+}
+
+export fn int_array_push(arr: *IntArray, value: int) {
+    // Check if we need to grow
+    if arr->len >= arr->cap {
+        // Double capacity (or start with 4)
+        let new_cap = 4;
+        if arr->cap > 0 {
+            new_cap = arr->cap * 2;
+        }
+        
+        // Allocate new array (malloc is now an intrinsic, no declaration needed)
+        let new_data = malloc(new_cap * 4) as *int;  // sizeof(int) = 4 bytes
+        
+        // Copy old data
+        let i = 0;
+        while i < arr->len {
+            new_data[i] = arr->data[i];
+            i = i + 1;
+        }
+        
+        // Update array
+        arr->data = new_data;
+        arr->cap = new_cap;
+    }
+    
+    // Add element
+    arr->data[arr->len] = value;
+    arr->len = arr->len + 1;
+}
+
+export fn int_array_get(arr: *IntArray, index: int) -> int {
+    if index < 0 || index >= arr->len {
+        return -1;  // Error value
+    }
+    return arr->data[index];
+}
+
+export fn int_array_len(arr: *IntArray) -> int {
+    return arr->len;
+}
+
+export fn int_array_pop(arr: *IntArray) -> int {
+    if arr->len == 0 {
+        return -1;  // Error value
+    }
+    arr->len = arr->len - 1;
+    return arr->data[arr->len];
+}
+
+// Note: malloc is already available from C stdlib, no need to declare

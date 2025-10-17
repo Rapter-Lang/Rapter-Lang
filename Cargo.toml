@@ -1,0 +1,16 @@
+[package]
+name = "rapter-lang"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rapter Language Contributors"]
+description = "A statically-typed, compiled programming language with self-hosting capabilities"
+license = "MIT"
+repository = "https://github.com/yourusername/rapter-lang"
+keywords = ["compiler", "programming-language", "self-hosting", "transpiler"]
+categories = ["compilers", "development-tools"]
+
+[dependencies]
+
+[[bin]]
+name = "rapter-lang"
+path = "src/main.rs"

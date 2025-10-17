@@ -1,0 +1,22 @@
+import token
+import lexer
+import parser
+import codegen
+
+extern fn printf(format: *char, ...) -> int;
+extern fn rapter_read_all(path: *char) -> *char;
+
+fn main(argc: int, argv: **char) -> int {
+    if argc < 2 {
+        printf("Usage: bootstrap <file.rapt>\n");
+        return 1;
+    }
+    
+    let input = rapter_read_all(argv[1]);
+    
+    let toks = lexer.tokenize(input);
+    parser.parse_program(input, toks);
+    codegen.emit_c_basic_stdout(input, toks);
+    
+    return 0;
+}

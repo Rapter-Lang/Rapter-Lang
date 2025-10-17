@@ -1,0 +1,6 @@
+extern fn printf(format: *char, ...) -> int;
+
+fn main() -> int {
+    printf("Hello, Rapter!\n")
+    return 0
+}

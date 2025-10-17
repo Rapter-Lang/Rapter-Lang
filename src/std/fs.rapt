@@ -1,0 +1,11 @@
+// Basic filesystem I/O for Rapter (read_all, write_all)
+extern fn rapter_read_all(path: *char) -> *char;
+extern fn rapter_write_all(path: *char, data: *char) -> int;
+
+export fn read_all(path: *char) -> *char {
+    return rapter_read_all(path);
+}
+
+export fn write_all(path: *char, data: *char) -> int {
+    return rapter_write_all(path, data);
+}
