@@ -1,305 +1,320 @@
-# Rapter Programming Language
+# Rapter Programming Language 🚀
 
-> A statically-typed, compiled language with self-hosting capabilities
+> A modern, statically-typed systems programming language that compiles itself
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/yourusername/rapter-lang)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Rapter-Lang/Rapter-Lang)
+[![Self-Hosting](https://img.shields.io/badge/self--hosting-✓-brightgreen.svg)](https://github.com/Rapter-Lang/Rapter-Lang)
 
-## Self-Hosting Achievement!
+## 🎯 Self-Hosting Compiler Achieved!
 
-**Rapter can now compile Rapter programs!** The bootstrap compiler (written in Rapter) successfully compiles Rapter source code.
+**Rapter successfully compiles itself!** This milestone represents a fully functional compiler toolchain written in Rapter that can compile Rapter source code.
 
-### What's Working
-- ✅ **Self-hosting compiler** - 100 lines of Rapter code that compiles Rapter
-- ✅ **Full compiler pipeline** - 1,500+ lines of compiler components in Rapter
-- ✅ **Professional CLI** - `rapter build`, `rapter run`, `rapter compile`, `rapter clean`
-- ✅ **Complete language** - Functions, structs, generics, pattern matching, error handling
+### What's Working Now
+- ✅ **Self-hosting compiler** - 100-line bootstrap compiler written in pure Rapter
+- ✅ **Full compiler pipeline** - 6,800+ lines of Rapter compiler code (lexer, parser, semantic analyzer, codegen)
+- ✅ **Professional CLI** - Complete command-line interface with `build`, `run`, `compile`, `clean` commands
+- ✅ **Rich type system** - Structs, enums, generics, pointers, arrays, pattern matching
+- ✅ **Advanced features** - Error propagation (`?` operator), ternary operators, match expressions
+- ✅ **Module system** - Import/export with qualified names
+- ✅ **Standard library** - I/O, string utilities, filesystem, command-line args
 
-### Quick Start
+
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
-# Install Rapter CLI
+# Clone the repository
+git clone https://github.com/Rapter-Lang/Rapter-Lang.git
+cd Rapter-Lang
+
+# Install the Rapter CLI (adds to PATH)
 .\install.ps1
 
-# Build a program
-rapter build examples/hello_cli.rapt
+# Build the Rust-based compiler
+cargo build --release
+```
 
-# Run it
+### Your First Program
+
+Create `hello.rapt`:
+```rapter
+extern fn printf(format: *char, ...) -> int;
+
+fn main() -> int {
+    printf("Hello, World!\n");
+    return 0;
+}
+```
+
+Build and run:
+```bash
+rapter build hello.rapt
 rapter run
 ```
 
-See [RAPTER_CLI.md](RAPTER_CLI.md) for detailed CLI usage.
+### CLI Commands
+
+- `rapter build <file.rapt>` - Compile a Rapter program to C and executable
+- `rapter run` - Run the most recently compiled program
+- `rapter compile <file.rapt>` - Compile to C only (no executable)
+- `rapter clean` - Remove build artifacts
+- `rapter help` - Show all available commands
+
+See [RAPTER_CLI.md](RAPTER_CLI.md) for detailed CLI documentation.
 
 ---
 
-## Overview
-Rapter is a statically-typed, compiled programming language designed to bridge the gap between low-level control and high-level expressiveness.
+## 📖 Language Overview
 
-## Core Language Features
+Rapter is a modern systems programming language designed for clarity, safety, and performance. It compiles to C and then to native machine code.
 
-### Type System
-- **Statically typed** with strong type inference
-- Primitive types: `int`, `float`, `bool`, `char`, `string`
-- Complex types: arrays, structs, enums, pointers
-- Optional type annotations (inferred when omitted)
-- Generics support for reusable code
+### Design Philosophy
+- **Explicit but concise** - Clear syntax without excessive boilerplate
+- **Systems-level control** - Manual memory management, pointers, low-level operations
+- **Modern conveniences** - Type inference, pattern matching, error handling operators
+- **Self-hosting** - The compiler is written in Rapter itself
 
-### Syntax Philosophy
-- Clean and intuitive, drawing inspiration from modern languages
-- Minimal boilerplate while maintaining explicitness where it matters
-- Familiar control structures with consistent formatting
-- Support for both functional and imperative paradigms
-- **Statement termination**: Newline-based (like Python/Swift) with optional explicit continuation
-  - Single statement per line (default)
-  - Use `\` for line continuation when needed
-  - Automatic semicolon insertion rules for edge cases
+### Core Features
 
-### Language Level
-- **Medium-level positioning**
-  - Low-level features: manual memory management, pointers, inline assembly
-  - High-level features: closures, pattern matching, smart abstractions
-  - Zero-cost abstractions where possible
-- **Memory Management**
-  - Manual allocation/deallocation (no garbage collection)
-  - Stack-based allocation by default
-  - Heap allocation via `new` operator
-  - Deallocation via `delete` operator
-  - Ownership system inspired by Rust (borrowing, moving)
-  - Compile-time memory safety checks
-  - RAII (Resource Acquisition Is Initialization) patterns
+#### Type System
+- **Static typing** with powerful type inference
+- **Primitive types**: `int`, `float`, `bool`, `char`, `string`
+- **Complex types**: Arrays, pointers, structs, enums
+- **Generics**: Built-in support for `Option<T>` and `Result<T, E>`
+- **Type annotations**: Optional (can be inferred in most cases)
 
-### Object-Oriented Features
-- Classes with inheritance (single inheritance, multiple interfaces)
-- Access modifiers: `public`, `private`, `protected`
-- Methods, constructors, destructors
-- Abstract classes and interfaces
-- Operator overloading
+#### Memory Management
+- **Manual control** - Stack and heap allocation via `new`/`delete`
+- **Pointers** - Full pointer arithmetic and dereferencing
+- **No garbage collection** - Predictable performance
+- **Safety features** - Compile-time checks for common errors
 
-### Error Handling System
-Rapter's exceptional error messages include:
-- **Precise location**: Line and column numbers
-- **Visual indicators**: Colored output with pointer arrows (^)
-- **Categorized errors**: `[E###]` for errors, `[W###]` for warnings
-- **Context display**: Shows surrounding code with highlighting
-- **Smart suggestions**: "Did you mean X?" for common mistakes
-- **Error categories**:
-  - `E001-E099`: Syntax errors
-  - `E100-E199`: Type errors
-  - `E200-E299`: Memory errors
-  - `W001-W099`: Style warnings
-  - `W100-W199`: Performance warnings
+#### Pattern Matching
+```rapter
+let result: Result<int, string> = might_fail();
 
-Example error output:
-```
-[E042] Type mismatch at src/main.rapt:12:18
-   |
-12 | let x: int = "hello";
-   |              ^^^^^^^ expected type 'int', found 'string'
-   |
-   = help: Convert string to int using parse() method
+match result {
+    Result::Ok(value) => printf("Success: %d\n", value),
+    Result::Err(msg) => printf("Error: %s\n", msg),
+}
 ```
 
-## Version 0.1.0 Goals
+#### Error Handling
+```rapter
+fn process() -> Result<int, string> {
+    let value = might_fail()?;  // Propagate errors with ?
+    return Result::Ok(value * 2);
+}
+```
 
-### Core Components
-- ✓ **Lexer**: Tokenize source code
-- ✓ **Parser**: Build parse tree from tokens
-- ✓ **AST Generator**: Create abstract syntax tree
-- ✓ **Semantic Analyzer**: Type checking and validation
-- ✓ **Error Handler**: Comprehensive error reporting system
-- ✓ **Code Generator**: Emit target code (LLVM IR or native)
-- ✓ **Standard Library (minimal)**: Basic I/O, string operations
 
-### Language Features (v0.1.0)
-- [x] File extension: `.rapt`
-- [x] Variables and constants
-- [x] Basic data types
-- [x] Functions (with parameters and return values)
-- [x] Control flow: `if`, `else`, `while`, `for`
-- [x] Basic structs
-- [x] Comments (single-line `//` and multi-line `/* */`)
-- [x] Basic operators (arithmetic, logical, comparison)
-- [x] Turing completeness verified
-
-### Compiler Features
-- Command-line interface: `rapter build`, `rapter run`
-- Optimization levels: `-O0`, `-O1`, `-O2`, `-O3`
-- Debug symbols generation
-- Dependency management (basic)
-
-## Syntax Examples
+## 💡 Code Examples
 
 ### Hello World
 ```rapter
-import std.io
+extern fn printf(format: *char, ...) -> int;
 
 fn main() -> int {
-    io.println("Hello, Rapter!")
-    return 0
+    printf("Hello, Rapter!\n");
+    return 0;
 }
 ```
 
-### Variables and Types
+### Variables and Control Flow
 ```rapter
-fn example() {
-    let x: int = 42           // explicit type
-    let y = 3.14              // inferred as float
-    const PI: float = 3.14159 // constant
-    let mut counter = 0       // mutable variable
+extern fn printf(format: *char, ...) -> int;
+
+fn fibonacci(n: int) -> int {
+    if n <= 1 {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+fn main() -> int {
+    let n = 10;
+    
+    for i : 0..n {
+        let fib = fibonacci(i);
+        printf("fib(%d) = %d\n", i, fib);
+    }
+    
+    return 0;
 }
 ```
 
-### Functions
+### Structs and Memory Management
 ```rapter
-fn add(a: int, b: int) -> int {
-    return a + b
-}
+extern fn printf(format: *char, ...) -> int;
 
-fn greet(name: string) {
-    io.println("Hello, " + name)
-}
-
-// Multi-line expressions use \ for continuation
-fn complex_calculation(x: int) -> int {
-    return x * 2 + \
-           x * 3 + \
-           x * 4
-}
-```
-
-### Memory Management Examples
-```rapter
-fn memory_demo() {
-    // Stack allocation (automatic cleanup)
-    let x = 42
-    
-    // Heap allocation
-    let ptr = new int(100)
-    io.println(*ptr)
-    delete ptr  // Manual cleanup required
-    
-    // Arrays on heap
-    let arr = new [int; 10]
-    arr[0] = 5
-    delete arr
-}
-
-// Ownership and borrowing
-fn ownership_example() {
-    let data = new DataStruct()
-    
-    process_data(data)      // moves ownership to function
-    // data is no longer valid here
-    
-    let data2 = new DataStruct()
-    borrow_data(&data2)     // borrows reference
-    // data2 is still valid here
-    
-    delete data2
-}
-
-fn process_data(owned: DataStruct) {
-    // takes ownership, will be cleaned up when function exits
-}
-
-fn borrow_data(borrowed: &DataStruct) {
-    // only borrows, doesn't take ownership
-}
-```
-
-### Structs
-```rapter
 struct Point {
-    x: float,
-    y: float
+    x: int,
+    y: int
 }
 
-fn distance(p1: Point, p2: Point) -> float {
-    let dx = p2.x - p1.x
-    let dy = p2.y - p1.y
-    return sqrt(dx * dx + dy * dy)
+struct Rectangle {
+    top_left: Point,
+    width: int,
+    height: int
 }
-```
 
-### Classes (Basic)
-```rapter
-class Rectangle {
-    private width: float
-    private height: float
+fn area(rect: Rectangle) -> int {
+    return rect.width * rect.height;
+}
+
+fn main() -> int {
+    let rect = Rectangle {
+        top_left: Point { x: 0, y: 0 },
+        width: 10,
+        height: 20
+    };
     
-    public fn new(w: float, h: float) -> Rectangle {
-        return Rectangle { width: w, height: h }
-    }
+    let a = area(rect);
+    printf("Area: %d\n", a);
     
-    public fn area() -> float {
-        return this.width * this.height
-    }
+    return 0;
 }
 ```
 
-### Statement Termination Rules
-```rapter
-// Single statements - newline terminates
-let x = 5
-let y = 10
+See the [examples/](examples/) directory for more complete programs.
 
-// Expressions that clearly continue don't need \
-let sum = x + y +
-          z + w
 
-// But for clarity, \ can be used
-let result = calculate_value() \
-             + another_value()
+## 🏗️ Project Structure
 
-// Blocks don't need continuation
-if x > 5 {
-    do_something()
-    do_another_thing()
-}
-
-// Chained method calls naturally continue
-data.filter(predicate)
-    .map(transform)
-    .collect()
+```
+RapterLang/
+├── src/                    # Rust-based compiler implementation
+│   ├── main.rs            # Compiler entry point
+│   ├── lexer.rs           # Tokenization
+│   ├── parser.rs          # Syntax analysis
+│   ├── semantic.rs        # Type checking & validation
+│   ├── codegen.rs         # C code generation
+│   ├── modules.rs         # Module resolution
+│   └── std/               # Standard library (.rapt files)
+│       ├── io.rapt        # I/O operations
+│       ├── str.rapt       # String utilities
+│       ├── char.rapt      # Character utilities
+│       ├── fs.rapt        # Filesystem operations
+│       └── args.rapt      # Command-line arguments
+├── bootstrap/             # Self-hosting compiler
+│   └── src/               # Rapter compiler written in Rapter
+│       ├── rapter_bootstrap_v1.rapt
+│       └── (25 compiler components)
+├── lib/                   # Rapter runtime library
+│   └── runtime.c          # C runtime support
+├── examples/              # Example programs
+│   ├── hello.rapt
+│   ├── fibonacci.rapt
+│   └── structs_demo.rapt
+├── rapter.ps1            # CLI script (PowerShell)
+├── rapter.bat            # CLI wrapper (Windows)
+├── install.ps1           # PATH installer
+└── Cargo.toml            # Rust project config
 ```
 
-## Future Roadmap (Post v0.1.0)
+## 📊 Statistics
 
-### Version 0.2.0
-- Full OOP implementation (inheritance, polymorphism)
-- Pattern matching
-- Advanced error recovery in parser
-- Module system
-- Package manager
+- **Rust compiler**: 6,603 lines (11 files)
+- **Rapter bootstrap compiler**: 6,845 lines (25 files)  
+- **Standard library**: 203 lines (5 modules)
+- **Total self-hosted code**: 7,048 lines of Rapter
+
+## 🛠️ Development
+
+### Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/Rapter-Lang/Rapter-Lang.git
+cd Rapter-Lang
+
+# Build the Rust compiler
+cargo build --release
+
+# The compiler binary will be at:
+# target/release/rapter-lang.exe (Windows)
+# target/release/rapter-lang (Linux/Mac)
+```
+
+### Running Tests
+
+```bash
+# Run Rust tests
+cargo test
+
+# Test the compiler with examples
+rapter build examples/hello.rapt
+rapter run
+```
+
+### Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+- Report bugs via [GitHub Issues](https://github.com/Rapter-Lang/Rapter-Lang/issues)
+- Submit pull requests for features or fixes
+- Join discussions about language design
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
+- **[RAPTER_CLI.md](RAPTER_CLI.md)** - Complete CLI reference
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history
+
+## 🗺️ Roadmap
+
+### Current Version: 0.1.0 ✅
+- [x] Self-hosting compiler
+- [x] Complete type system
+- [x] Pattern matching
+- [x] Generics (Option, Result)
+- [x] Error propagation operator (`?`)
+- [x] Module system
+- [x] Standard library basics
+
+### Version 0.2.0 (Next)
+- [ ] **String improvements** - Methods, interpolation, better operations
+- [ ] **Arrays enhancement** - Dynamic arrays, slices, methods
+- [ ] **Error messages** - Better diagnostics with suggestions
+- [ ] **More operators** - Compound assignment (+=, -=, etc.)
+- [ ] **Loops** - Break/continue with labels
+- [ ] **REPL** - Interactive interpreter
 
 ### Version 0.3.0
-- Generics
-- Traits/Interfaces
-- Async/await support
-- Foreign Function Interface (FFI)
+- [ ] **Closures** - Anonymous functions with captures
+- [ ] **Traits** - Interface-like type system
+- [ ] **Macros** - Compile-time code generation
+- [ ] **Standard library expansion** - Collections, networking, etc.
 
 ### Version 1.0.0
-- Production-ready standard library
-- Comprehensive testing framework
-- Documentation generator
-- IDE/LSP support
-- Stable API
+- [ ] **Production ready** - Stable API and ABI
+- [ ] **LSP server** - IDE/editor integration
+- [ ] **Package manager** - Dependency management
+- [ ] **Comprehensive docs** - Language reference manual
 
-## Build System
-- Project structure: `src/`, `tests/`, `docs/`
-- Configuration file: `rapter.toml`
-- Build artifacts: `build/` directory
+## 🤝 Community & Support
 
-## Development Priorities
-1. Implement robust lexer and parser
-2. Design comprehensive test suite
-3. Create error message system early
-4. Document language features as they're implemented
-5. Establish coding standards and conventions
+- **GitHub**: [Rapter-Lang/Rapter-Lang](https://github.com/Rapter-Lang/Rapter-Lang)
+- **Issues**: Report bugs or request features
+- **Discussions**: Ask questions and share ideas
 
-## Community & Philosophy
-- Open source development
-- Focus on developer experience
-- Clear, comprehensive documentation
-- Regular release cycle
-- Community-driven feature requests
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+Rapter draws inspiration from many great languages:
+- **Rust** - Ownership concepts and error handling
+- **C** - Systems programming philosophy
+- **Swift** - Clean, modern syntax
+- **Go** - Simplicity and pragmatism
+
+---
+
+**Built with ❤️ by the Rapter community**
+
+*Star ⭐ this repo if you find it interesting!*
