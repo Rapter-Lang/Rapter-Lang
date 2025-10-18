@@ -1371,6 +1371,63 @@ impl CCodeGenerator {
                 self.indent();
                 self.output.push_str("})");
             }
+            Expression::InterpolatedString { parts } => {
+                // Generate sprintf code for string interpolation
+                // Example: "Hello :name:!" becomes sprintf(buffer, "Hello %s!", name)
+                
+                use crate::ast::StringPart;
+                
+                // Build the format string and collect arguments
+                let mut format_str = String::new();
+                let mut args = Vec::new();
+                
+                for part in parts {
+                    match part {
+                        StringPart::Text(text) => {
+                            // Escape % characters in text
+                            format_str.push_str(&text.replace("%", "%%"));
+                        }
+                        StringPart::Interpolation(expr) => {
+                            // Determine the format specifier based on expression type
+                            let expr_type = self.expr_type(expr).unwrap_or(Type::Int);
+                            let format_spec = match expr_type {
+                                Type::Int => "%d",
+                                Type::Float => "%f",
+                                Type::Char => "%c",
+                                Type::String => "%s",
+                                Type::Struct(ref name) if name == "str" => "%s",
+                                Type::Bool => "%d", // Booleans as 0/1
+                                _ => "%p", // Pointers for other types
+                            };
+                            format_str.push_str(format_spec);
+                            args.push(expr);
+                        }
+                    }
+                }
+                
+                // Generate the sprintf call in a compound expression
+                // ({ char* __buf = malloc(256); sprintf(__buf, format, args...); __buf; })
+                let temp_buf = format!("__interp_buf_{}", self.temp_counter);
+                self.temp_counter += 1;
+                
+                self.output.push_str("({ char* ");
+                self.output.push_str(&temp_buf);
+                self.output.push_str(" = (char*)malloc(256); sprintf(");
+                self.output.push_str(&temp_buf);
+                self.output.push_str(", \"");
+                self.output.push_str(&format_str);
+                self.output.push_str("\"");
+                
+                // Add arguments
+                for arg in args {
+                    self.output.push_str(", ");
+                    self.generate_expression(arg)?;
+                }
+                
+                self.output.push_str("); ");
+                self.output.push_str(&temp_buf);
+                self.output.push_str("; })");
+            }
             Expression::TryOperator { expression } => {
                 // Desugar expr? into a match expression
                 // For Result<T, E>: match expr { Ok(v) => v, Err(e) => return Err(e) }
@@ -2134,6 +2191,10 @@ impl CCodeGenerator {
                 } else {
                     None
                 }
+            }
+            Expression::InterpolatedString { .. } => {
+                // Interpolated strings always produce String type (char*)
+                Some(Type::String)
             }
             Expression::TryOperator { expression } => {
                 // ? operator unwraps Result<T, E> to T, or Option<T> to T

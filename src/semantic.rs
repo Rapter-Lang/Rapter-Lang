@@ -1588,6 +1588,17 @@ fn infer_type(expr: &Expression, symbol_table: &mut SymbolTable, file_path: &Pat
             // Return type of first arm (all are compatible)
             Ok(first_arm_ty)
         }
+        Expression::InterpolatedString { parts } => {
+            // Type-check all interpolated expressions
+            for part in parts {
+                if let crate::ast::StringPart::Interpolation(expr) = part {
+                    // Verify the interpolated expression has a valid type
+                    infer_type(expr, symbol_table, file_path)?;
+                }
+            }
+            // Interpolated strings always evaluate to String type
+            Ok(Type::String)
+        }
         Expression::TryOperator { expression } => {
             // The ? operator unwraps Result<T, E> or Option<T> and propagates errors
             

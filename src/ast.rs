@@ -205,6 +205,15 @@ pub enum Expression {
     TryOperator {
         expression: Box<Expression>,
     },
+    InterpolatedString {
+        parts: Vec<StringPart>,  // Alternating text and expressions
+    },
+}
+
+#[derive(Debug, Clone)]
+pub enum StringPart {
+    Text(String),           // Plain text between interpolations
+    Interpolation(Expression),  // Expression to interpolate like :name:
 }
 
 #[derive(Debug, Clone)]

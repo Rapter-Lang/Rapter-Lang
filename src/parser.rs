@@ -879,6 +879,17 @@ impl Parser {
             TokenKind::StringLiteral(s) => {
                 let s = s.clone();
                 self.advance();
+                
+                // Check if the string contains interpolations (:var:)
+                if s.contains(':') {
+                    let parts = self.parse_string_interpolations(&s)?;
+                    if parts.len() > 1 || matches!(parts.get(0), Some(crate::ast::StringPart::Interpolation(_))) {
+                        // Has interpolations, return InterpolatedString
+                        return Ok(Expression::InterpolatedString { parts });
+                    }
+                }
+                
+                // No interpolations, return regular string literal
                 Ok(Expression::Literal(Literal::String(s)))
             }
             TokenKind::Identifier(name) => {
@@ -1103,6 +1114,84 @@ impl Parser {
     
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]
+    }
+    
+    // Parse string interpolations from a string literal
+    // Format: "Hello :name:! You are :age: years old."
+    // Returns a Vec of StringPart alternating between Text and Interpolation
+    fn parse_string_interpolations(&self, s: &str) -> Result<Vec<crate::ast::StringPart>, CompilerError> {
+        use crate::ast::{StringPart, Expression};
+        
+        let mut parts = Vec::new();
+        let mut current_text = String::new();
+        let mut chars = s.chars().peekable();
+        
+        while let Some(ch) = chars.next() {
+            if ch == ':' {
+                // Potential interpolation start
+                let mut var_name = String::new();
+                let mut found_closing = false;
+                
+                // Collect characters until closing ':'
+                while let Some(&next_ch) = chars.peek() {
+                    if next_ch == ':' {
+                        chars.next(); // consume closing ':'
+                        found_closing = true;
+                        break;
+                    }
+                    // Don't allow newlines in interpolations
+                    if next_ch == '\n' || next_ch == '\r' {
+                        break;
+                    }
+                    var_name.push(next_ch);
+                    chars.next();
+                }
+                
+                // Trim whitespace from variable name
+                let var_name_trimmed = var_name.trim();
+                
+                if found_closing && !var_name_trimmed.is_empty() {
+                    // Valid interpolation found
+                    // Push any accumulated text first
+                    if !current_text.is_empty() {
+                        parts.push(StringPart::Text(current_text.clone()));
+                        current_text.clear();
+                    }
+                    
+                    // Parse the variable name as an expression
+                    // For now, support simple variables and basic expressions
+                    let expr = if var_name_trimmed.contains(' ') || var_name_trimmed.contains('+') || 
+                               var_name_trimmed.contains('-') || var_name_trimmed.contains('*') || 
+                               var_name_trimmed.contains('/') {
+                        // Simple expression parsing - just treat it as a variable for now
+                        // TODO: Full expression parsing would require lexing/parsing the interpolation
+                        Expression::Variable(var_name_trimmed.to_string())
+                    } else {
+                        Expression::Variable(var_name_trimmed.to_string())
+                    };
+                    
+                    parts.push(StringPart::Interpolation(expr));
+                } else {
+                    // Not a valid interpolation, treat ':' as literal
+                    current_text.push(':');
+                    current_text.push_str(&var_name);
+                }
+            } else {
+                current_text.push(ch);
+            }
+        }
+        
+        // Add any remaining text
+        if !current_text.is_empty() {
+            parts.push(StringPart::Text(current_text));
+        }
+        
+        // If no parts, return a single empty text part
+        if parts.is_empty() {
+            parts.push(StringPart::Text(String::new()));
+        }
+        
+        Ok(parts)
     }
 }
 
